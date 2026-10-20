@@ -1,0 +1,24 @@
+﻿equipment_id	name	category	description	available_quantity
+1	Laptop	Electronics	Laptop for student projects	6
+2	Projector	Electronics	Projector for presentations	2
+3	Digital Camera	Photography	Camera for college activities	3
+4	Laptop Charger	Accessories	Universal laptop power adapter	10
+5	External Hard Drive	Storage	External drive for data backups	6
+6	USB Flash Drive	Storage	USB drive for file transfers	20
+7	Power Bank	Accessories	Portable battery charger	8
+8	HDMI Cable	Accessories	HDMI cable for display connections	12
+9	Graphics Tablet	Electronics	Tablet for digital art and design	5
+10	DSLR Camera	Photography	Digital camera for photography projects	3
+11	Camera Lens	Photography	Additional lens for compatible cameras	4
+12	Ring Light	Photography	LED ring light for video recording	6
+13	Gimbal Stabilizer	Photography	Stabilizer for smooth video recording	3
+14	Headphones	Audio	Over-ear headphones for audio work	10
+15	Audio Mixer	Audio	Mixer for sound recording and events	2
+16	Voice Recorder	Audio	Portable recorder for interviews	4
+17	Laser Pointer	Presentation	Pointer for classroom presentations	8
+18	Document Camera	Presentation	Camera for displaying documents	3
+19	Whiteboard	Presentation	Portable whiteboard for group work	5
+20	Scientific Calculator	Lab Equipment	Calculator for mathematical work	15
+21	Digital Multimeter	Lab Equipment	Device for measuring electrical values	6
+22	Soldering Iron	Lab Equipment	Tool for electronics prototyping	4
+23	3D Printer	Lab Equipment	Printer for creating 3D prototypes	1

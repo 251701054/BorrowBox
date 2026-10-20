@@ -1,0 +1,2 @@
+﻿borrowing_id	user_id	equipment_id	borrow_date	due_date	return_date	status
+6	1	20	2026-10-20	2026-10-27	2026-10-20	Returned
