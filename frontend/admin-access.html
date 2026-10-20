@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Admin Access · BorrowBox</title>
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<div class="shell">
+			<aside class="sidebar" id="sidebar">
+				<a class="brand" href="index.html">
+					<b class="logo">⬡</b>
+					<span>
+						<strong>Borrow<span>Box</span></strong>
+						<small>Smart equipment lending</small>
+					</span>
+				</a>
+				<p class="nav-label">WORKSPACE</p>
+				<nav>
+					<a href="index.html">⌂ <span>Dashboard</span></a>
+					<a href="equipment.html">⌕ <span>Available equipment</span></a>
+					<a href="borrow.html">▦ <span>Borrow equipment</span></a>
+					<a href="history.html">◷ <span>My borrowings</span></a>
+					<a href="reservations.html">▤ <span>Reservations</span></a>
+					<p class="nav-label">MANAGE</p>
+					<a href="users.html">♙ <span>People & roles</span></a>
+					<a href="maintenance.html">⚒ <span>Care & maintenance</span></a>
+					<a class="active" href="admin-access.html">♜ <span>Admin access</span></a>
+				</nav>
+				<div class="side-promo">
+					<b>✳ Administrator workspace.</b>
+					<p>Manage people, permissions, and operational tools from one place.</p>
+				</div>
+				<small class="connection"><i></i> Connected workspace · v1.0</small>
+			</aside>
+			<main>
+				<header class="topbar">
+					<button class="menu" id="menu">☰</button>
+					<div class="crumb">Manage <b>/</b> <strong>Admin access</strong></div>
+					<div class="top-right">
+						<label class="role"><span class="avatar">A</span><span id="signed-in-name">Administrator</span></label>
+					</div>
+				</header>
+				<div class="content">
+					<section class="page-heading">
+						<div>
+							<small class="eyebrow">CONTROL CENTRE</small>
+							<h1>Admin <em>access.</em></h1>
+							<p>Manage roles and open the tools available to workspace administrators.</p>
+						</div>
+					</section>
+					<div id="admin-access-warning" class="notice" role="status">
+						<strong>Administrator access verified</strong>
+						<p>Your signed-in account has administrator access. The server verifies your session before allowing access to this page.</p>
+					</div>
+					<section class="stats admin-access-stats">
+						<article class="stat blue">
+							<small>♙ &nbsp; People & roles</small>
+							<strong>01</strong>
+							<p>Review user roles and access</p>
+							<a class="link" href="users.html">Open people & roles →</a>
+						</article>
+						<article class="stat mint">
+							<small>▣ &nbsp; Equipment</small>
+							<strong>02</strong>
+							<p>Review equipment records</p>
+							<a class="link" href="equipment.html">Open equipment →</a>
+						</article>
+						<article class="stat purple">
+							<small>⚒ &nbsp; Maintenance</small>
+							<strong>03</strong>
+							<p>Manage repair and maintenance</p>
+							<a class="link" href="maintenance.html">Open maintenance →</a>
+						</article>
+					</section>
+					<section class="panel admin-access-panel">
+						<div class="panel-head">
+							<div>
+								<small class="eyebrow">ADMINISTRATION</small>
+								<h2>Access management</h2>
+								<p>Use these shortcuts to manage the workspace.</p>
+							</div>
+						</div>
+						<div class="access-list">
+							<a class="access-item" href="users.html">
+								<span class="access-icon">♙</span>
+								<span>
+									<b>Assign roles and manage users</b>
+									<small>Review accounts and role assignments.</small>
+								</span>
+								<span class="access-arrow">↗</span>
+							</a>
+							<a class="access-item" href="equipment.html">
+								<span class="access-icon">▣</span>
+								<span>
+									<b>Equipment administration</b>
+									<small>Review the equipment catalogue.</small>
+								</span>
+								<span class="access-arrow">↗</span>
+							</a>
+							<a class="access-item" href="maintenance.html">
+								<span class="access-icon">⚒</span>
+								<span>
+									<b>Maintenance administration</b>
+									<small>Review equipment care and repair records.</small>
+								</span>
+								<span class="access-arrow">↗</span>
+							</a>
+							<a class="access-item" href="reservations.html">
+								<span class="access-icon">▤</span>
+								<span>
+									<b>Reservation oversight</b>
+									<small>Review equipment reservation activity.</small>
+								</span>
+								<span class="access-arrow">↗</span>
+							</a>
+						</div>
+					</section>
+					<p class="access-footnote">Security note: hiding admin controls in the interface is not access control. Every privileged API endpoint must verify the authenticated user's role on the server.</p>
+				</div>
+			</main>
+		</div>
+		<div id="toast-region"></div>
+		<script src="app.js"></script>
+
+	</body>
+</html>

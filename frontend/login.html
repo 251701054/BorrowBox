@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BorrowBox | Sign in or create account</title>
+<link rel="stylesheet" href="auth.css">
+</head>
+<body>
+<main class="layout">
+  <aside class="story">
+    <a class="brand" href="login.html"><span class="mark">B</span> BorrowBox<span class="dot">.</span></a>
+    <div class="story-content">
+      <span class="eyebrow"><i></i> CAMPUS EQUIPMENT, SIMPLIFIED</span>
+      <h1>Good tools.<br><em>Great work.</em></h1>
+      <p>Find the equipment you need, reserve it in a few clicks, and keep every loan organized.</p>
+      <div class="features">
+        <div class="feature"><span class="feature-icon">↗</span><div><b>Reserve with confidence</b><small>See what’s available before you plan.</small></div></div>
+        <div class="feature"><span class="feature-icon">◷</span><div><b>Keep every loan in view</b><small>Reservations, due dates, all in one place.</small></div></div>
+      </div>
+    </div>
+    <div class="story-footer"><span class="live-dot"></span> Your campus lending hub <span>•</span> Built for curious minds</div>
+    <div class="ring ring-a"></div><div class="ring ring-b"></div>
+  </aside>
+  <section class="panel">
+    <a class="mobile-brand" href="login.html"><span class="mark">B</span> BorrowBox<span class="dot">.</span></a>
+    <div class="auth-card">
+      <div class="heading"><span class="eyebrow">WELCOME TO BORROWBOX</span><h2 id="heading">Welcome back</h2><p id="subheading">Sign in to continue to your campus workspace.</p></div>
+      <div class="tabs" role="tablist" aria-label="Account options">
+        <button id="tab-signin" class="tab active" type="button" role="tab" aria-selected="true">Sign in</button>
+        <button id="tab-signup" class="tab" type="button" role="tab" aria-selected="false">Create account</button>
+      </div>
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+      <form id="signin-form">
+        <label for="signin-email">College email</label>
+        <input id="signin-email" name="email" type="email" placeholder="you@college.edu" autocomplete="email" required>
+        <div class="label-row"><label for="signin-password">Password</label><button class="link" type="button" data-toggle="signin-password">Show</button></div>
+        <input id="signin-password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+        <div class="options"><label class="check"><input id="remember" type="checkbox"><span>Keep me signed in</span></label><span class="muted">Private &amp; secure</span></div>
+        <button class="submit" type="submit">Sign in <span>→</span></button>
+        <p class="switch-copy">New to BorrowBox? <button class="link" type="button" data-switch="signup">Create an account</button></p>
+      </form>
+      <form id="signup-form" hidden>
+        <label for="signup-name">Full name</label>
+        <input id="signup-name" name="full_name" type="text" placeholder="Your full name" autocomplete="name" minlength="2" required>
+        <label for="signup-email">College email</label>
+        <input id="signup-email" name="email" type="email" placeholder="you@college.edu" autocomplete="email" required>
+        <label for="signup-role">Account type</label>
+        <select id="signup-role" name="role" required><option value="Student">Student</option><option value="Staff">Staff</option></select>
+        <label for="signup-password">Create password</label>
+        <div class="password-wrap"><input id="signup-password" name="password" type="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required><button class="link" type="button" data-toggle="signup-password">Show</button></div>
+        <label for="signup-confirm">Confirm password</label>
+        <input id="signup-confirm" name="confirm_password" type="password" placeholder="Enter password again" autocomplete="new-password" minlength="8" required>
+        <label class="check terms"><input id="terms" type="checkbox" required><span>I agree to use shared equipment responsibly.</span></label>
+        <button class="submit" type="submit">Create account <span>→</span></button>
+        <p class="switch-copy">Already registered? <button class="link" type="button" data-switch="signin">Sign in</button></p>
+      </form>
+      <p class="fine-print">Access is for authorized campus community members.</p>
+    </div>
+    <div class="bottom-note">BORROW SMART. BUILD MORE.</div>
+  </section>
+</main>
+<script src="auth.js"></script>
+</body>
+</html>
