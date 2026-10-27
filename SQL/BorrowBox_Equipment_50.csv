@@ -1,0 +1,51 @@
+equipment_id,name,category,description,available_quantity
+1,Laptop,Electronics,Laptop for student projects,6
+2,Projector,Electronics,Projector for presentations,2
+3,Digital Camera,Photography,Camera for college activities,3
+4,Laptop Charger,Accessories,Universal laptop power adapter,10
+5,External Hard Drive,Storage,External drive for data backups,6
+6,USB Flash Drive,Storage,USB drive for file transfers,20
+7,Power Bank,Accessories,Portable battery charger,8
+8,HDMI Cable,Accessories,HDMI cable for display connections,12
+9,Graphics Tablet,Electronics,Tablet for digital art and design,5
+10,DSLR Camera,Photography,Digital camera for photography projects,3
+11,Camera Lens,Photography,Additional lens for compatible cameras,4
+12,Ring Light,Photography,LED ring light for video recording,6
+13,Gimbal Stabilizer,Photography,Stabilizer for smooth video recording,3
+14,Headphones,Audio,Over-ear headphones for audio work,10
+15,Audio Mixer,Audio,Mixer for sound recording and events,2
+16,Voice Recorder,Audio,Portable recorder for interviews,4
+17,Laser Pointer,Presentation,Pointer for classroom presentations,8
+18,Document Camera,Presentation,Camera for displaying documents,3
+19,Whiteboard,Presentation,Portable whiteboard for group work,5
+20,Scientific Calculator,Lab Equipment,Calculator for mathematical work,15
+21,Digital Multimeter,Lab Equipment,Device for measuring electrical values,6
+22,Soldering Iron,Lab Equipment,Tool for electronics prototyping,4
+23,3D Printer,Lab Equipment,Printer for creating 3D prototypes,1
+24,Arduino Uno Starter Kit,Electronics,Microcontroller kit for embedded systems projects,8
+25,Raspberry Pi Kit,Computing,Single-board computer kit for IoT and coding,5
+26,Breadboard Kit,Electronics,Solderless breadboards and jumper wires for circuits,15
+27,Sensor Module Kit,Electronics,Assorted sensors for Arduino and IoT prototypes,10
+28,Robotics Car Kit,Robotics,Programmable robot chassis with motors and controller,4
+29,Servo Motor Kit,Robotics,Motors and accessories for robotics prototypes,8
+30,Logic Analyzer,Lab Equipment,Digital signal capture and debugging tool,3
+31,Oscilloscope,Lab Equipment,Instrument for measuring electronic waveforms,2
+32,DC Bench Power Supply,Lab Equipment,Adjustable power supply for circuit testing,4
+33,Wi-Fi Router,Networking,Router for networking labs and demonstrations,5
+34,Network Switch,Networking,Ethernet switch for LAN experiments,4
+35,Ethernet Cable Kit,Networking,Assorted RJ45 cables for network setup,12
+36,USB-C Hub,Accessories,Multiport adapter for laptop peripherals and displays,10
+37,Wireless Mouse,Computing,Portable mouse for computing workstations,15
+38,USB Keyboard,Computing,Standard keyboard for desktops and test setups,12
+39,External Monitor,Computing,Monitor for coding and presentation setups,6
+40,Webcam,Audio Visual,USB webcam for online demos and recording,8
+41,USB Microphone,Audio,"Microphone for podcasting, calls and narration",6
+42,Tripod Stand,Photography,Adjustable camera and phone tripod,7
+43,Portable PA Speaker,Audio,Rechargeable speaker for events and presentations,3
+44,Presentation Clicker,Presentation,Wireless slide controller for seminars,7
+45,Portable Scanner,Office Equipment,Document scanner for digitizing paperwork,3
+46,Label Printer,Office Equipment,Printer for inventory labels and prototypes,2
+47,VR Headset,Electronics,Headset for immersive technology demonstrations,2
+48,MicroSD Card Reader,Storage,USB adapter for reading memory cards,10
+49,Drawing Tablet Stylus,Accessories,Replacement pen for compatible graphics tablets,6
+50,Thermal Camera,Lab Equipment,Infrared camera for temperature inspection projects,2
