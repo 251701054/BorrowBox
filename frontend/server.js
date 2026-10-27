@@ -16,7 +16,6 @@ const pool = mysql.createPool({
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "shiva",
   database: process.env.DB_NAME || "BorrowBox",
-  ssl: { minVersion: "TLSv1.2" },
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
