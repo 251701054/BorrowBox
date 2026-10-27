@@ -25,14 +25,23 @@ app.get("/", (req, res) => {
   res.json({ message: "BorrowBox API is running" });
 });
 
+
 app.get("/api/health", async (req, res) => {
   try {
     const [rows] = await pool.query("SELECT 1 AS databaseConnected");
-    res.json({ status: "ok", database: rows[0].databaseConnected === 1 ? "connected" : "unknown" });
+    res.json({
+      status: "ok",
+      database: rows[0].databaseConnected === 1 ? "connected" : "unknown"
+    });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Database connection failed" });
+    console.error("Database health check failed:", error.code, error.message);
+    res.status(500).json({
+      status: "error",
+      message: "Database connection failed"
+    });
   }
 });
+
 
 // Authentication routes are public; all other /api routes require a JWT.
 const JWT_SECRET = process.env.JWT_SECRET;
