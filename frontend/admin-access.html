@@ -23,10 +23,10 @@
 					<a href="borrow.html">▦ <span>Borrow equipment</span></a>
 					<a href="history.html">◷ <span>My borrowings</span></a>
 					<a href="reservations.html">▤ <span>Reservations</span></a>
-					<p class="nav-label">MANAGE</p>
-					<a href="users.html">♙ <span>People & roles</span></a>
-					<a href="maintenance.html">⚒ <span>Care & maintenance</span></a>
-					<a class="active" href="admin-access.html">♜ <span>Admin access</span></a>
+					<p class="nav-label manage-label">MANAGE</p>
+					<a class="admin-only" href="users.html">♙ <span>People & roles</span></a>
+					<a class="admin-only" href="maintenance.html">⚒ <span>Care & maintenance</span></a>
+					<a class="active admin-only" href="admin-access.html">♜ <span>Admin access</span></a>
 				</nav>
 				<div class="side-promo">
 					<b>✳ Administrator workspace.</b>
@@ -59,7 +59,7 @@
 							<small>♙ &nbsp; People & roles</small>
 							<strong>01</strong>
 							<p>Review user roles and access</p>
-							<a class="link" href="users.html">Open people & roles →</a>
+							<a class="link admin-only" href="users.html">Open people & roles →</a>
 						</article>
 						<article class="stat mint">
 							<small>▣ &nbsp; Equipment</small>
@@ -71,7 +71,7 @@
 							<small>⚒ &nbsp; Maintenance</small>
 							<strong>03</strong>
 							<p>Manage repair and maintenance</p>
-							<a class="link" href="maintenance.html">Open maintenance →</a>
+							<a class="link admin-only" href="maintenance.html">Open maintenance →</a>
 						</article>
 					</section>
 					<section class="panel admin-access-panel">
@@ -83,7 +83,7 @@
 							</div>
 						</div>
 						<div class="access-list">
-							<a class="access-item" href="users.html">
+							<a class="access-item admin-only" href="users.html">
 								<span class="access-icon">♙</span>
 								<span>
 									<b>Assign roles and manage users</b>
@@ -99,7 +99,7 @@
 								</span>
 								<span class="access-arrow">↗</span>
 							</a>
-							<a class="access-item" href="maintenance.html">
+							<a class="access-item admin-only" href="maintenance.html">
 								<span class="access-icon">⚒</span>
 								<span>
 									<b>Maintenance administration</b>
