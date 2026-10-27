@@ -27,12 +27,31 @@ app.get("/", (req, res) => {
   res.json({ message: "BorrowBox API is running" });
 });
 
+
 app.get("/api/health", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT 1 AS databaseConnected");
-    res.json({ status: "ok", database: rows[0].databaseConnected === 1 ? "connected" : "unknown" });
+    const [rows] = await pool.query(
+      "SELECT 1 AS databaseConnected"
+    );
+
+    res.json({
+      status: "ok",
+      database: rows[0].databaseConnected === 1
+        ? "connected"
+        : "unknown"
+    });
+
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Database connection failed" });
+    console.error(
+      "DATABASE CONNECTION ERROR:",
+      error.code,
+      error.message
+    );
+
+    res.status(500).json({
+      status: "error",
+      message: "Database connection failed"
+    });
   }
 });
 
