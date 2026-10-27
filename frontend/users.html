@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>People &amp; Roles · BorrowBox</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="shell">
+        <aside class="sidebar" id="sidebar">
+            <a class="brand" href="index.html">
+                <b class="logo">⬡</b>
+                <span>
+                    <strong>Borrow<span>Box</span></strong>
+                    <small>Smart equipment lending</small>
+                </span>
+            </a>
+            <p class="nav-label">WORKSPACE</p>
+            <nav>
+                <a href="index.html">⌂ <span>Dashboard</span></a>
+                <a href="equipment.html">⌕ <span>Available equipment</span></a>
+                <a href="borrow.html">▦ <span>Borrow equipment</span></a>
+                <a href="history.html">◷ <span>My borrowings</span></a>
+                <a href="reservations.html">▤ <span>Reservations</span></a>
+                <p class="nav-label manage-label">MANAGE</p>
+                <a class="active admin-only" href="users.html">♙ <span>People &amp; roles</span></a>
+                <a class="admin-only" href="maintenance.html">⚒ <span>Care &amp; maintenance</span></a>
+                <a class="admin-only" href="admin-access.html">♜ <span>Admin access</span></a>
+            </nav>
+            <div class="side-promo">
+                <b>✳ A campus full of ideas.</b>
+                <p>Keep the people behind every project organised.</p>
+            </div>
+            <small class="connection"><i></i> Connected workspace · v1.0</small>
+        </aside>
+        <main>
+            <header class="topbar">
+                <button class="menu" id="menu">☰</button>
+                <div class="crumb">Manage <b>/</b> <strong>People &amp; roles</strong></div>
+                <div class="top-right">
+                    <label class="role">
+                        <span class="avatar">A</span>
+                        <select id="role-switcher">
+                            <option>Admin</option>
+                            <option>Student</option>
+                        </select>
+                    </label>
+                </div>
+            </header>
+            <div class="content">
+                <section class="page-title">
+                    <div>
+                        <small>THE PEOPLE SIDE OF BORROWING</small>
+                        <h1>Good teams make <em>good work.</em></h1>
+                        <p>View student and administrator records connected to your workspace.</p>
+                    </div>
+                    <button class="btn primary admin-only" id="toggle-user-form">＋ Add a person</button>
+                </section>
+                <section class="panel hidden" id="user-form-panel">
+                    <div class="panel-head">
+                        <h2>Add a person<span>.</span></h2>
+                        <button id="close-user-form">×</button>
+                    </div>
+                    <form id="user-form">
+                        <div class="form-row">
+                            <label>Full name *<input id="user-name" required maxlength="100"></label>
+                            <label>Email address *<input id="user-email" type="email" required maxlength="100"></label>
+                            <label>Role *<select id="user-role">
+                                    <option>Student</option>
+                                    <option>Staff</option>
+                                    <option>Admin</option>
+                                </select></label>
+                        </div>
+                        <p id="user-message" role="status"></p>
+                        <button class="btn primary">Save person →</button>
+                    </form>
+                </section>
+                <section class="stats compact">
+                    <article class="stat blue">
+                        <small>People registered</small>
+                        <strong id="users-total">—</strong>
+                    </article>
+                    <article class="stat violet">
+                        <small>Administrators</small>
+                        <strong id="users-admin">—</strong>
+                    </article>
+                    <article class="stat mint">
+                        <small>Students</small>
+                        <strong id="users-student">—</strong>
+                    </article>
+                </section>
+                <section class="panel table-panel">
+                    <div class="panel-head">
+                        <div>
+                            <small>THE BORROWBOX COMMUNITY</small>
+                            <h2>People directory<span>.</span></h2>
+                        </div>
+                        <input id="users-search" class="table-search" placeholder="Search name or email…">
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role / Assign role</th>
+                                    <th>User ID</th>
+                                    <th>Admin action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-body">
+                                <tr>
+                                    <td colspan="5">Loading people…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <footer>© 2026 BorrowBox <span>Good people. Shared resources.</span></footer>
+            </div>
+        </main>
+    </div>
+    <div id="toast-region" aria-live="polite"></div>
+    <script src="app.js"></script>
+</body>
+
+</html>
