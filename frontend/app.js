@@ -52,80 +52,28 @@ async function api(path, opts = {}) {
 function toast(msg,error=false){let n=$("#toast-region");if(!n){alert(msg);return}n.innerHTML=`<div class="toast ${error?"error":""}">${error?"!":"✓"} &nbsp; ${esc(msg)}</div>`;clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.replaceChildren(),3500)}
 function badge(s){let c=String(s||"unknown").toLowerCase().replace(/[^a-z]+/g,"-");return `<span class="badge ${c}">${esc(s||"Unknown")}</span>`}
 function symbol(x){let s=((x.category||"")+" "+(x.name||"")).toLowerCase();return /camera|photo|lens/.test(s)?"◉":/audio|microphone|speaker|headphone/.test(s)?"♫":/laptop|computer|tablet/.test(s)?"▱":/projector|presentation|screen/.test(s)?"▣":/storage|usb|drive/.test(s)?"▤":"⬡"}
+// Photo paths are keyed by the existing equipment_id in equipment-photos.js.
+// The image downloader generates that file from equipment-photo-plan.json.
 function productImage(x) {
-  const text = `${x.category || ""} ${x.name || ""}`.toLowerCase();
-
-  // Match the database's existing category/name fields; no SQL changes are needed.
-  const imageRules = [
-    {
-      keywords: /\bcalculator\b/,
-      url: "https://images.unsplash.com/photo-1587145820266-a5951ee6f620?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\blaptop\b|\bcomputer\b|\bmacbook\b|\bpc\b|\bnotebook computer\b/,
-      url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\btablet\b|\bipad\b/,
-      url: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\bcamera\b|\bphotography\b|\blens\b|\bdslr\b/,
-      url: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\bheadphones?\b|\bearphones?\b|\baudio\b|\bspeakers?\b/,
-      url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\bmicrophone\b|\bmic\b/,
-      url: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\btextbook\b|\bbooks?\b|\bnovel\b|\bjournal\b/,
-      url: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\bkeyboard\b|\bcomputer mouse\b|\bmouse\b/,
-      url: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\bprojector\b|\bpresentation\b|\bprojection screen\b/,
-      url: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\busb\b|\bstorage\b|\bhard drive\b|\bflash drive\b/,
-      url: "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=900&q=80"
-    },
-    {
-      keywords: /\bAudio Visual\b/,
-      url: "https://unsplash.com/photos/black-and-silver-speaker-on-white-table-lq87UxGSiEQ?auto=format&fit=crop&w=900&q=80"
-    },
-  ];
-
-  const match = imageRules.find(rule => rule.keywords.test(text));
-
-  // Use a general electronics photograph when no rule matches.
-  return match
-    ? match.url
-    : "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=900&q=80";
+  const equipmentId = String(id(x) ?? "");
+  return window.BORROWBOX_EQUIPMENT_PHOTOS?.[equipmentId] || "";
 }
 
 function art(x, i = 0) {
   const photo = productImage(x);
-  const name = x.name || "BorrowBox product";
-
+  const name = String(x.name || "Equipment");
+  const description = String(x.description || "");
+  const itemId = String(id(x) ?? i + 1).padStart(3, "0");
+  const imageMarkup = photo
+    ? `<img class="gear-photo" src="${esc(photo)}" alt="${esc(name + (description ? ": " + description : ""))}" loading="lazy" decoding="async" onerror="this.onerror=null;this.hidden=true;this.nextElementSibling.hidden=false">`
+    : "";
   return `<div class="gear-art art-${["blue", "purple", "mint", "orange"][i % 4]}">
-    <img class="gear-photo"
-      src="${photo}"
-      alt="${esc(name)}"
-      loading="lazy"
-      referrerpolicy="no-referrer"
-      onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='grid';">
-    <span class="gear-photo-fallback">Photo unavailable</span>
-    <small>BB / ${String(id(x) || i + 1).padStart(3, "0")}</small>
+    ${imageMarkup}
+    <span class="gear-photo-fallback" ${photo ? "hidden" : ""}>Photo unavailable</span>
+    <small>BB / ${esc(itemId)}</small>
   </div>`;
 }
+
 function setup() {
   $("#menu")?.addEventListener("click", () => $("#sidebar")?.classList.toggle("open"));
 
