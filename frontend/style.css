@@ -3,29 +3,45 @@
 /* Admin-only people and role controls */
 .user-role-select{background:#0b1d38;border:1px solid #244367;border-radius:7px;color:#dce9ff;padding:7px 9px;font-size:10px;min-width:105px}.user-role-select:disabled{opacity:.6}.admin-only.hidden{display:none!important}
 
-/* BorrowBox integrated repairs */
-.sidebar nav .manage-label,.sidebar nav .admin-only{display:none}
-body.session-ready .sidebar nav .manage-label:not(.hidden),body.session-ready .sidebar nav .admin-only:not(.hidden){display:flex}
-.sidebar nav .manage-label{display:none!important}
-body.session-ready .sidebar nav .manage-label:not(.hidden){display:block!important}
-.admin-access-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch;margin:24px 0}
-.admin-access-stats .stat{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:22px}
-.admin-access-stats .stat p{margin:0;line-height:1.55}
-.admin-access-stats .stat .link{margin-top:auto;color:#79b9ff;font-weight:700}
-.admin-access-panel .panel-head{margin-bottom:19px}
-.access-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.access-item{display:grid;grid-template-columns:40px minmax(0,1fr) 18px;align-items:center;gap:14px;padding:18px;border:1px solid #24436a;border-radius:12px;background:#0d2544;min-width:0;transition:background .2s,border-color .2s}
-.access-item:hover{background:#15345d;border-color:#4476b7}
-.access-item>span:nth-child(2){min-width:0}
-.access-item b{display:block;color:#e5efff;line-height:1.5;overflow-wrap:anywhere}
-.access-item small{display:block;color:#9db5d6;font-size:11px;margin-top:6px;line-height:1.55}
-.access-icon{display:grid;place-items:center;height:40px;width:40px;border-radius:10px;background:#1a4171;color:#84bbff}
-.access-arrow{color:#73b7ff;text-align:right}
-.admin-access-panel h2{color:#8dbdff}
-.access-footnote{color:#9ab2d1;line-height:1.65;margin-top:18px}
-.repair-select{width:170px;max-width:100%;min-height:36px;padding:8px 26px 8px 10px;background:#102e54;color:#e2efff;border:1px solid #3b6597;border-radius:8px;cursor:pointer}
-.repair-select:disabled{opacity:.55;cursor:wait}
-.table-wrap th,.table-wrap td{vertical-align:middle}
-.table-wrap td{line-height:1.55}
-@media(max-width:1000px){.access-list{grid-template-columns:1fr}}
-@media(max-width:700px){.admin-access-stats{grid-template-columns:1fr;gap:12px}.access-item{padding:14px}}
+
+/* BorrowBox reservations: balanced spacing and responsive table layout */
+.reservations-page .content { padding-bottom: 28px; }
+.reservations-page .page-title { margin: 8px 0 24px; }
+.reservations-page .callout {
+  margin: 0 0 22px;
+  padding: 20px 22px;
+  min-height: 94px;
+  gap: 18px;
+  align-items: center;
+}
+.reservations-page .callout > b { flex: 0 0 46px; width: 46px; height: 46px; }
+.reservations-page .callout > div { min-width: 0; }
+.reservations-page .callout > div strong { display: block; line-height: 1.45; font-size: 13px; }
+.reservations-page .callout p { line-height: 1.55; margin-top: 6px; }
+.reservations-page .callout > strong { margin-left: auto; white-space: nowrap; }
+.reservations-page .table-panel { margin: 0; padding: 0; overflow: hidden; }
+.reservations-page .table-panel > .panel-head {
+  min-height: 106px;
+  padding: 22px 24px;
+  margin: 0;
+  gap: 24px;
+}
+.reservations-page .table-panel .inline-filters { align-items: center; flex-wrap: wrap; }
+.reservations-page .table-panel .table-search { width: 215px; max-width: 100%; }
+.reservations-page .table-panel th,
+.reservations-page .table-panel td { padding: 16px 22px; }
+.reservations-page .table-panel tbody td[colspan] { padding: 24px 22px; }
+.reservations-page .table-panel #reservation-message:empty { display: none; }
+.reservations-page .table-panel #reservation-message:not(:empty) { margin: 0; padding: 12px 22px; }
+.reservations-page footer { margin-top: 22px; padding: 12px 3px 0; }
+@media (max-width: 700px) {
+  .reservations-page .callout { flex-wrap: wrap; padding: 16px; gap: 12px; }
+  .reservations-page .callout > b { flex-basis: 40px; width: 40px; height: 40px; }
+  .reservations-page .callout > div { flex: 1 1 calc(100% - 60px); }
+  .reservations-page .callout > strong { margin-left: 52px; }
+  .reservations-page .table-panel > .panel-head { padding: 18px 16px; gap: 16px; align-items: stretch; min-height: 0; }
+  .reservations-page .table-panel .inline-filters { width: 100%; }
+  .reservations-page .table-panel th,
+  .reservations-page .table-panel td { padding: 13px 16px; }
+  .reservations-page .table-panel tbody td[colspan] { padding: 20px 16px; }
+}
