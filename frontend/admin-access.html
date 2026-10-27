@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Admin Access · BorrowBox</title>
-		<link rel="stylesheet" href="style.css?v=bbfix-20261027">
+		<link rel="stylesheet" href="style.css?v=admin-cards-20261027">
 	</head>
 	<body>
 		<div class="shell">
@@ -23,10 +23,10 @@
 					<a href="borrow.html">▦ <span>Borrow equipment</span></a>
 					<a href="history.html">◷ <span>My borrowings</span></a>
 					<a href="reservations.html">▤ <span>Reservations</span></a>
-					<p class="nav-label manage-label">MANAGE</p>
-					<a class="admin-only" href="users.html">♙ <span>People & roles</span></a>
-					<a class="admin-only" href="maintenance.html">⚒ <span>Care & maintenance</span></a>
-					<a class="admin-only" class="active" href="admin-access.html">♜ <span>Admin access</span></a>
+					<p class="nav-label">MANAGE</p>
+					<a href="users.html">♙ <span>People & roles</span></a>
+					<a href="maintenance.html">⚒ <span>Care & maintenance</span></a>
+					<a class="active" href="admin-access.html">♜ <span>Admin access</span></a>
 				</nav>
 				<div class="side-promo">
 					<b>✳ Administrator workspace.</b>
@@ -59,7 +59,7 @@
 							<small>♙ &nbsp; People & roles</small>
 							<strong>01</strong>
 							<p>Review user roles and access</p>
-							<a class="admin-only" class="link" href="users.html">Open people & roles →</a>
+							<a class="link" href="users.html">Open people & roles →</a>
 						</article>
 						<article class="stat mint">
 							<small>▣ &nbsp; Equipment</small>
@@ -71,7 +71,7 @@
 							<small>⚒ &nbsp; Maintenance</small>
 							<strong>03</strong>
 							<p>Manage repair and maintenance</p>
-							<a class="admin-only" class="link" href="maintenance.html">Open maintenance →</a>
+							<a class="link" href="maintenance.html">Open maintenance →</a>
 						</article>
 					</section>
 					<section class="panel admin-access-panel">
@@ -82,10 +82,10 @@
 								<p>Use these shortcuts to manage the workspace.</p>
 							</div>
 						</div>
-						<div class="access-list">
-							<a class="admin-only" class="access-item" href="users.html">
+						<div class="access-list" aria-label="Administration shortcuts">
+							<a class="access-item" href="users.html">
 								<span class="access-icon">♙</span>
-								<span>
+								<span class="access-copy">
 									<b>Assign roles and manage users</b>
 									<small>Review accounts and role assignments.</small>
 								</span>
@@ -93,15 +93,15 @@
 							</a>
 							<a class="access-item" href="equipment.html">
 								<span class="access-icon">▣</span>
-								<span>
+								<span class="access-copy">
 									<b>Equipment administration</b>
 									<small>Review the equipment catalogue.</small>
 								</span>
 								<span class="access-arrow">↗</span>
 							</a>
-							<a class="admin-only" class="access-item" href="maintenance.html">
+							<a class="access-item" href="maintenance.html">
 								<span class="access-icon">⚒</span>
-								<span>
+								<span class="access-copy">
 									<b>Maintenance administration</b>
 									<small>Review equipment care and repair records.</small>
 								</span>
@@ -109,7 +109,7 @@
 							</a>
 							<a class="access-item" href="reservations.html">
 								<span class="access-icon">▤</span>
-								<span>
+								<span class="access-copy">
 									<b>Reservation oversight</b>
 									<small>Review equipment reservation activity.</small>
 								</span>
@@ -122,7 +122,7 @@
 			</main>
 		</div>
 		<div id="toast-region"></div>
-		<script src="config.js"></script><script src="app.js?v=bbfix-20261027"></script>
+		<script src="config.js"></script><script src="app.js"></script>
 
 	</body>
 </html>
