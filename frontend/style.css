@@ -74,3 +74,38 @@
   .admin-access-panel { padding: 18px; }
   .admin-access-panel .access-item { padding: 14px; gap: 10px; }
 }
+
+
+/* BorrowBox maintenance status control — dark theme, no browser-native dropdown */
+.maintenance-action { display: inline-flex; position: relative; vertical-align: middle; }
+.maintenance-update-trigger {
+  display: inline-flex; justify-content: space-between; align-items: center; gap: 14px;
+  min-width: 150px; min-height: 38px; padding: 9px 13px;
+  border: 1px solid #386aa8; border-radius: 9px;
+  color: #dbeaff; background: linear-gradient(145deg,#183d6d,#10284a);
+  font: 700 11px 'DM Sans',sans-serif; cursor: pointer;
+  box-shadow: 0 3px 10px #0002; transition: background .15s, border-color .15s, transform .15s;
+}
+.maintenance-update-trigger:hover { background: #214e86; border-color: #76adff; transform: translateY(-1px); }
+.maintenance-update-trigger[aria-expanded="true"] { border-color: #85baff; background: #214b7b; }
+.maintenance-update-trigger:disabled { opacity: .6; cursor: wait; transform: none; }
+.maintenance-chevron { color: #a4c8ff; font-size: 18px; line-height: 1; transition: transform .15s; }
+.maintenance-update-trigger[aria-expanded="true"] .maintenance-chevron { transform: rotate(180deg); }
+.maintenance-update-menu {
+  position: fixed; z-index: 1000; width: 210px; padding: 6px;
+  background: #102846; border: 1px solid #396395; border-radius: 12px;
+  box-shadow: 0 14px 38px #0009;
+}
+.maintenance-update-menu[hidden] { display: none !important; }
+.maintenance-option {
+  width: 100%; display: flex; align-items: center; gap: 11px;
+  padding: 12px 11px; border: 0; border-radius: 8px;
+  color: #e6f0ff; background: transparent; font: 600 12px 'DM Sans',sans-serif;
+  text-align: left; cursor: pointer;
+}
+.maintenance-option:hover,.maintenance-option:focus-visible { background: #224776; }
+.maintenance-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: #7aa7ff; }
+.maintenance-dot.pending { background: #ff778c; }
+.maintenance-dot.in-progress { background: #a28aff; }
+.maintenance-dot.completed { background: #39dfc0; }
+@media(max-width:600px){ .maintenance-update-trigger{ min-width:132px; } }
