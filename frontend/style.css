@@ -155,3 +155,18 @@
   z-index: 1;
 }
 
+
+/* BorrowBox: 50 unique equipment photographs */
+.gear-art::before { display: none; }
+.gear-art .gear-photo {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  display: block; object-fit: cover; object-position: center; z-index: 0;
+  transition: transform .25s ease;
+}
+.feature:hover .gear-photo, .catalogue-card:hover .gear-photo { transform: scale(1.035); }
+.gear-art .gear-photo-fallback {
+  display: none; position: absolute; inset: 0; place-items: center;
+  padding: 10px; background: #132c4b; color: #dce8fa;
+  font: 600 12px 'DM Sans', sans-serif; text-align: center; text-shadow: none; z-index: 1;
+}
+.gear-art small { z-index: 2; color: #e8f2ff; background: rgba(5, 16, 32, .8); padding: 3px 6px; border-radius: 5px; }
