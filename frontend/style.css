@@ -3,45 +3,20 @@
 /* Admin-only people and role controls */
 .user-role-select{background:#0b1d38;border:1px solid #244367;border-radius:7px;color:#dce9ff;padding:7px 9px;font-size:10px;min-width:105px}.user-role-select:disabled{opacity:.6}.admin-only.hidden{display:none!important}
 
-
-/* BorrowBox reservations: balanced spacing and responsive table layout */
-.reservations-page .content { padding-bottom: 28px; }
-.reservations-page .page-title { margin: 8px 0 24px; }
-.reservations-page .callout {
-  margin: 0 0 22px;
-  padding: 20px 22px;
-  min-height: 94px;
-  gap: 18px;
-  align-items: center;
-}
-.reservations-page .callout > b { flex: 0 0 46px; width: 46px; height: 46px; }
-.reservations-page .callout > div { min-width: 0; }
-.reservations-page .callout > div strong { display: block; line-height: 1.45; font-size: 13px; }
-.reservations-page .callout p { line-height: 1.55; margin-top: 6px; }
-.reservations-page .callout > strong { margin-left: auto; white-space: nowrap; }
-.reservations-page .table-panel { margin: 0; padding: 0; overflow: hidden; }
-.reservations-page .table-panel > .panel-head {
-  min-height: 106px;
-  padding: 22px 24px;
-  margin: 0;
-  gap: 24px;
-}
-.reservations-page .table-panel .inline-filters { align-items: center; flex-wrap: wrap; }
-.reservations-page .table-panel .table-search { width: 215px; max-width: 100%; }
-.reservations-page .table-panel th,
-.reservations-page .table-panel td { padding: 16px 22px; }
-.reservations-page .table-panel tbody td[colspan] { padding: 24px 22px; }
-.reservations-page .table-panel #reservation-message:empty { display: none; }
-.reservations-page .table-panel #reservation-message:not(:empty) { margin: 0; padding: 12px 22px; }
-.reservations-page footer { margin-top: 22px; padding: 12px 3px 0; }
-@media (max-width: 700px) {
-  .reservations-page .callout { flex-wrap: wrap; padding: 16px; gap: 12px; }
-  .reservations-page .callout > b { flex-basis: 40px; width: 40px; height: 40px; }
-  .reservations-page .callout > div { flex: 1 1 calc(100% - 60px); }
-  .reservations-page .callout > strong { margin-left: 52px; }
-  .reservations-page .table-panel > .panel-head { padding: 18px 16px; gap: 16px; align-items: stretch; min-height: 0; }
-  .reservations-page .table-panel .inline-filters { width: 100%; }
-  .reservations-page .table-panel th,
-  .reservations-page .table-panel td { padding: 13px 16px; }
-  .reservations-page .table-panel tbody td[colspan] { padding: 20px 16px; }
-}
+/* BorrowBox maintenance status action */
+#maintenance-body td:last-child{min-width:182px;text-align:left;overflow:visible}
+#maintenance-body tr{position:relative}
+.maintenance-action{position:relative;display:inline-block;min-width:146px}
+.maintenance-update-trigger{width:100%;min-height:36px;padding:8px 11px 8px 13px;display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #345c8e;border-radius:9px;background:linear-gradient(135deg,#173a67,#10284b);color:#d9eaff;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px #0002;transition:border-color .16s,background .16s}
+.maintenance-update-trigger:hover,.maintenance-update-trigger[aria-expanded="true"]{background:#1c477b;border-color:#72a7f1}
+.maintenance-update-trigger:disabled{opacity:.65;cursor:wait}
+.maintenance-chevron{font-size:17px;line-height:1;color:#93c0ff}
+.maintenance-update-menu[hidden]{display:none!important}
+.maintenance-update-menu{position:absolute;top:calc(100% + 5px);right:0;z-index:25;width:172px;padding:5px;border:1px solid #365d87;border-radius:10px;background:#102340;box-shadow:0 12px 28px #0009;display:grid;gap:3px}
+.maintenance-option{display:flex;align-items:center;gap:9px;width:100%;padding:10px 9px;text-align:left;border:0;border-radius:7px;background:transparent;color:#dceaff;font-size:11px;font-weight:650;cursor:pointer}
+.maintenance-option:hover,.maintenance-option:focus-visible{background:#214773}
+.maintenance-dot{width:8px;height:8px;border-radius:50%;background:#e9bd69;flex-shrink:0}
+.maintenance-dot.in-progress{background:#aa92ff}
+.maintenance-dot.completed{background:#39dfc0}
+#maintenance-body tr:last-child .maintenance-update-menu{top:auto;bottom:calc(100% + 5px)}
+@media(max-width:650px){#maintenance-body td:last-child{min-width:160px}.maintenance-action{min-width:138px}}
