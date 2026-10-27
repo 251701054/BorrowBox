@@ -3,20 +3,74 @@
 /* Admin-only people and role controls */
 .user-role-select{background:#0b1d38;border:1px solid #244367;border-radius:7px;color:#dce9ff;padding:7px 9px;font-size:10px;min-width:105px}.user-role-select:disabled{opacity:.6}.admin-only.hidden{display:none!important}
 
-/* BorrowBox maintenance status action */
-#maintenance-body td:last-child{min-width:182px;text-align:left;overflow:visible}
-#maintenance-body tr{position:relative}
-.maintenance-action{position:relative;display:inline-block;min-width:146px}
-.maintenance-update-trigger{width:100%;min-height:36px;padding:8px 11px 8px 13px;display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #345c8e;border-radius:9px;background:linear-gradient(135deg,#173a67,#10284b);color:#d9eaff;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px #0002;transition:border-color .16s,background .16s}
-.maintenance-update-trigger:hover,.maintenance-update-trigger[aria-expanded="true"]{background:#1c477b;border-color:#72a7f1}
-.maintenance-update-trigger:disabled{opacity:.65;cursor:wait}
-.maintenance-chevron{font-size:17px;line-height:1;color:#93c0ff}
-.maintenance-update-menu[hidden]{display:none!important}
-.maintenance-update-menu{position:absolute;top:calc(100% + 5px);right:0;z-index:25;width:172px;padding:5px;border:1px solid #365d87;border-radius:10px;background:#102340;box-shadow:0 12px 28px #0009;display:grid;gap:3px}
-.maintenance-option{display:flex;align-items:center;gap:9px;width:100%;padding:10px 9px;text-align:left;border:0;border-radius:7px;background:transparent;color:#dceaff;font-size:11px;font-weight:650;cursor:pointer}
-.maintenance-option:hover,.maintenance-option:focus-visible{background:#214773}
-.maintenance-dot{width:8px;height:8px;border-radius:50%;background:#e9bd69;flex-shrink:0}
-.maintenance-dot.in-progress{background:#aa92ff}
-.maintenance-dot.completed{background:#39dfc0}
-#maintenance-body tr:last-child .maintenance-update-menu{top:auto;bottom:calc(100% + 5px)}
-@media(max-width:650px){#maintenance-body td:last-child{min-width:160px}.maintenance-action{min-width:138px}}
+/* BorrowBox Admin Access — structured spacing & shortcuts */
+.admin-access-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 26px 0 26px;
+  align-items: stretch;
+}
+.admin-access-stats .stat {
+  display: flex;
+  flex-direction: column;
+  min-height: 178px;
+  padding: 23px;
+}
+.admin-access-stats .stat strong { margin: 16px 0 8px; }
+.admin-access-stats .stat p { margin: 0 0 10px; line-height: 1.5; }
+.admin-access-stats .stat .link {
+  display: inline-flex;
+  align-items: center;
+  margin: auto 0 0;
+  padding-top: 8px;
+  color: #8bbaff;
+  font-weight: 700;
+  font-size: 11px;
+}
+.admin-access-panel { padding: 28px; margin: 0 0 22px; }
+.admin-access-panel .panel-head { margin-bottom: 24px; }
+.admin-access-panel .panel-head p { color: #a4b9d8; font-size: 12px; line-height: 1.65; margin: 9px 0 0; }
+.admin-access-panel .panel-head h2 { margin-top: 7px; }
+.admin-access-panel .access-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.admin-access-panel .access-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #294669;
+  background: #0d2443;
+  border-radius: 12px;
+  color: #e2edff;
+  transition: background .18s, border-color .18s;
+}
+.admin-access-panel .access-item:hover { background: #153153; border-color: #5b93de; }
+.admin-access-panel .access-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  height: 38px;
+  background: #1b3c6d;
+  border-radius: 10px;
+  font-size: 18px;
+  color: #7db2ff;
+}
+.admin-access-panel .access-item > span:nth-child(2) { display: grid; gap: 6px; flex: 1; min-width: 0; }
+.admin-access-panel .access-item b { display: block; font-size: 13px; line-height: 1.4; }
+.admin-access-panel .access-item small { display: block; color: #a5badd; font-size: 11px; line-height: 1.5; }
+.admin-access-panel .access-arrow { color: #80b5ff; font-size: 17px; flex: none; }
+.access-footnote { color: #9cb4d5; line-height: 1.7; font-size: 11px; margin: 0 0 20px; }
+@media (max-width: 900px) {
+  .admin-access-stats { grid-template-columns: 1fr; gap: 14px; margin: 22px 0; }
+  .admin-access-stats .stat { min-height: 140px; }
+  .admin-access-panel .access-list { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .admin-access-panel { padding: 18px; }
+  .admin-access-panel .access-item { padding: 14px; gap: 10px; }
+}
