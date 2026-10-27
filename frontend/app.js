@@ -1,4 +1,4 @@
-const API = "http://localhost:3000/api";
+const API = (window.BORROWBOX_API_URL || "https://borrowbox-h11b.onrender.com/api").replace(/\/$/, "");
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 
@@ -171,7 +171,7 @@ async function loadCatalogue() {
     });
     render();
   } catch (error) {
-    grid.innerHTML = `<div class="empty wide"><b>Catalogue unavailable.</b><p>Check that the backend is running at localhost:3000.</p><small>${esc(error.message)}</small></div>`;
+    grid.innerHTML = `<div class="empty wide"><b>Catalogue unavailable.</b><p>Check that the BorrowBox backend API is reachable.</p><small>${esc(error.message)}</small></div>`;
   }
 }
 async function setupBorrow(){let f=$("#borrow-form");if(!f)return;let bd=$("#borrow-date"),dd=$("#due-date"),sel=$("#equipment-id"),t=today(),n=new Date();n.setDate(n.getDate()+7);let next=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;bd.min=t;bd.value=t;dd.min=t;dd.value=next;bd.addEventListener("change",()=>{dd.min=bd.value;if(dd.value<=bd.value){let d=new Date(bd.value+"T00:00:00");d.setDate(d.getDate()+7);dd.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}});try{equipment=await api("/equipment");equipment.forEach(x=>{let o=new Option(`${x.name} · ${qty(x)} available`,id(x));o.disabled=qty(x)<=0;sel.add(o)});let wanted=new URLSearchParams(location.search).get("equipment_id");if(wanted)sel.value=wanted;sel.addEventListener("change",()=>{let x=equipment.find(x=>String(id(x))===sel.value);$("#selected-equipment-hint").textContent=x?`${x.category} · ${qty(x)} currently available`:"Select an item to check availability."})}catch(e){$("#borrow-message").textContent="Could not load equipment. Check your backend."}f.addEventListener("submit",async e=>{e.preventDefault();let m=$("#borrow-message"),b=$("#submit-borrow");if(dd.value<=bd.value){m.textContent="Expected return date must be after borrow date.";m.className="error-text";return}b.disabled=true;b.textContent="Sending request…";try{await api("/borrowings",{method:"POST",body:JSON.stringify({user_id:Number($("#user-id").value),equipment_id:Number(sel.value),borrow_date:bd.value,due_date:dd.value})});m.textContent="Request submitted. Track it in My Borrowings.";m.className="success-text";toast("Borrowing request submitted.");f.reset();bd.value=t;dd.value=next}catch(err){m.textContent=err.message;m.className="error-text"}finally{b.disabled=false;b.textContent="Send borrowing request →"}})}

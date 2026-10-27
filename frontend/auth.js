@@ -4,7 +4,7 @@ const API_URL = (
   (location.hostname === "localhost" ||
     location.hostname === "127.0.0.1"
     ? "http://localhost:3000/api"
-    : "/api")
+    : "https://borrowbox-h11b.onrender.com/api")
 ).replace(/\/$/, "");
 
 const signinTab = document.getElementById("tab-signin");
