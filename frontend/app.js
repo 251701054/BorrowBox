@@ -78,10 +78,6 @@ function productImage(x) {
       url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80"
     },
     {
-      keywords: /\bAudio Visual\b/,
-      url: "https://unsplash.com/photos/black-and-silver-speaker-on-white-table-lq87UxGSiEQ?auto=format&fit=crop&w=900&q=80"
-    },
-    {
       keywords: /\bmicrophone\b|\bmic\b/,
       url: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=80"
     },
@@ -100,7 +96,11 @@ function productImage(x) {
     {
       keywords: /\busb\b|\bstorage\b|\bhard drive\b|\bflash drive\b/,
       url: "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=900&q=80"
-    }
+    },
+    {
+      keywords: /\bAudio Visual\b/,
+      url: "https://unsplash.com/photos/black-and-silver-speaker-on-white-table-lq87UxGSiEQ?auto=format&fit=crop&w=900&q=80"
+    },
   ];
 
   const match = imageRules.find(rule => rule.keywords.test(text));
