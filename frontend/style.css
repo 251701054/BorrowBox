@@ -109,3 +109,14 @@
 .maintenance-dot.in-progress { background: #a28aff; }
 .maintenance-dot.completed { background: #39dfc0; }
 @media(max-width:600px){ .maintenance-update-trigger{ min-width:132px; } }
+
+/* Integrated 2026-10-27 layout fixes */
+.sidebar nav .admin-only.hidden,.sidebar nav .manage-label.hidden {display:none!important}
+/* Keep the reservation summary and request queue visually separate */
+.content > .callout + .table-panel {margin-top:22px!important}
+.content > .callout {margin-bottom:0!important}
+.content > .table-panel + footer {margin-top:22px!important}
+.content > .table-panel {margin-bottom:0}
+.content > .table-panel .panel-head {padding-bottom:18px}
+.content > .table-panel .table-wrap {margin-top:2px}
+@media(max-width:600px){.content > .callout + .table-panel{margin-top:16px!important}.content > .table-panel + footer{margin-top:18px!important}}
