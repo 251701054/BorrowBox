@@ -111,75 +111,47 @@
 @media(max-width:600px){ .maintenance-update-trigger{ min-width:132px; } }
 
 
-/* Admin Access: shortcut cards matching Equipment administration reference */
-.admin-access-panel .access-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  align-items: stretch;
+/* BorrowBox product photos — appended overrides; existing layout and responsive rules remain intact. */
+.gear-art::before {
+  display: none;
 }
-.admin-access-panel .access-list > a.access-item {
-  display: grid;
-  grid-template-columns: 68px minmax(0, 1fr) 24px;
-  align-items: center;
-  column-gap: 22px;
-  width: 100%;
-  min-height: 128px;
-  padding: 24px 26px;
-  border: 1px solid #315781;
-  border-radius: 18px;
-  background: #173254;
-  color: #eaf2ff;
-  text-decoration: none;
-  transition: background .15s ease, border-color .15s ease, transform .15s ease;
-}
-.admin-access-panel .access-list > a.access-item:hover,
-.admin-access-panel .access-list > a.access-item:focus-visible {
-  background: #1c3b64;
-  border-color: #68a8ff;
-  transform: translateY(-2px);
-}
-.admin-access-panel .access-item .access-icon {
-  display: grid;
-  place-items: center;
-  width: 68px;
-  height: 68px;
-  border-radius: 18px;
-  background: #214575;
-  color: #82b7ff;
-  font-size: 25px;
-}
-.admin-access-panel .access-item .access-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  min-width: 0;
-}
-.admin-access-panel .access-item .access-copy b {
-  color: #edf4ff;
-  font: 800 clamp(14px, 1.25vw, 19px)/1.3 Manrope, sans-serif;
-}
-.admin-access-panel .access-item .access-copy small {
+
+.gear-art .gear-photo {
+  position: absolute;
+  inset: 0;
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+  transition: transform 0.3s ease;
+}
+
+.feature:hover .gear-photo,
+.catalogue-card:hover .gear-photo {
+  transform: scale(1.04);
+}
+
+.gear-art small {
+  z-index: 2;
+  padding: 4px 6px;
+  border-radius: 5px;
+  background: rgba(3, 12, 25, 0.78);
+  color: #e8f2ff;
+}
+
+.gear-art .gear-photo-fallback {
+  display: none;
+  position: absolute;
+  inset: 0;
+  place-items: center;
+  padding: 10px;
+  color: #cbdcf5;
+  background: #102846;
   font-size: 12px;
-  line-height: 1.5;
-  color: #aec4e3;
+  font-weight: 500;
+  text-shadow: none;
+  z-index: 1;
 }
-.admin-access-panel .access-item .access-arrow {
-  font-size: 23px;
-  color: #86baff;
-  justify-self: end;
-}
-@media (max-width: 1100px) {
-  .admin-access-panel .access-list { grid-template-columns: 1fr; }
-}
-@media (max-width: 600px) {
-  .admin-access-panel .access-list > a.access-item {
-    grid-template-columns: 48px minmax(0, 1fr) 18px;
-    gap: 12px;
-    min-height: 104px;
-    padding: 16px;
-  }
-  .admin-access-panel .access-item .access-icon { width: 48px; height: 48px; font-size: 20px; border-radius: 13px; }
-  .admin-access-panel .access-item .access-copy small { font-size: 11px; }
-}
+
