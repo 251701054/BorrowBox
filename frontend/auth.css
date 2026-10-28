@@ -3,7 +3,8 @@
 :root {
 	--navy: #101b32;
 	--navy2: #1b2d4a;
-	--lime: #c9f36a;
+	--blue: #5799ff;
+	--lime: #5799ff;
 	--ink: #182238;
 	--muted: #7b8496;
 	--line: #e4e8ef;
@@ -72,14 +73,14 @@ button {
 	width: 37px;
 	height: 37px;
 	border-radius: 12px;
-	background: var(--lime);
-	color: var(--navy);
+	background: linear-gradient(135deg, #5799ff, #245fd8);
+	color: #fff;
 	font-size: 20px;
-	box-shadow: 0 5px 20px #c9f36a22;
+	box-shadow: 0 5px 20px rgba(87, 153, 255, 0.35);
 }
 
 .dot {
-	color: var(--lime);
+	color: var(--blue);
 }
 
 .story-content {
@@ -103,8 +104,8 @@ button {
 	width: 7px;
 	height: 7px;
 	border-radius: 50%;
-	background: var(--lime);
-	box-shadow: 0 0 0 4px #c9f36a1c;
+	background: var(--blue);
+	box-shadow: 0 0 0 4px rgba(87, 153, 255, 0.22);
 }
 
 .story h1 {
@@ -118,7 +119,7 @@ button {
 
 .story h1 em {
 	font-style: normal;
-	color: var(--lime);
+	color: var(--blue);
 }
 
 .story-content > p {
@@ -147,11 +148,11 @@ button {
 	flex: 0 0 42px;
 	display: grid;
 	place-items: center;
-	border: 1px solid #ffffff24;
+	border: 1px solid rgba(87, 153, 255, 0.25);
 	border-radius: 13px;
-	color: var(--lime);
+	color: var(--blue);
 	font-size: 20px;
-	background: #ffffff08;
+	background: rgba(87, 153, 255, 0.08);
 }
 
 .feature b,
@@ -184,8 +185,8 @@ button {
 	width: 7px;
 	height: 7px;
 	border-radius: 50%;
-	background: var(--lime);
-	box-shadow: 0 0 0 4px #c9f36a19;
+	background: var(--blue);
+	box-shadow: 0 0 0 4px rgba(87, 153, 255, 0.22);
 }
 
 .ring {
@@ -312,8 +313,8 @@ form input::placeholder {
 
 form input:focus,
 form select:focus {
-	border-color: #9cc94b;
-	box-shadow: 0 0 0 3px #c9f36a35;
+	border-color: var(--blue);
+	box-shadow: 0 0 0 3px rgba(87, 153, 255, 0.25);
 }
 
 .label-row {
@@ -331,12 +332,13 @@ form select:focus {
 	border: 0;
 	background: transparent;
 	padding: 0;
-	color: #547d1c;
+	color: #245fd8;
 	font-size: 11px;
 	font-weight: 700;
 }
 
 .link:hover {
+	color: #1a4ab0;
 	text-decoration: underline;
 }
 
@@ -357,7 +359,7 @@ form select:focus {
 }
 
 .check input {
-	accent-color: #88b937;
+	accent-color: #245fd8;
 	width: 14px;
 	height: 14px;
 	margin: 0;
@@ -390,7 +392,7 @@ form select:focus {
 
 .submit span {
 	font-size: 17px;
-	color: var(--lime);
+	color: var(--blue);
 }
 
 .submit:disabled {
@@ -441,9 +443,9 @@ form select:focus {
 }
 
 .notice.success {
-	background: #f1f9e7;
-	color: #456b19;
-	border: 1px solid #d8ebbb;
+	background: #edf5ff;
+	color: #1a56c4;
+	border: 1px solid #c9deff;
 }
 
 .password-wrap {
