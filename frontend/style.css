@@ -163,3 +163,13 @@
 .gear-art .gear-photo-fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; font: 600 12px 'DM Sans',sans-serif; text-align: center; color: #dbe9ff; text-shadow: none; background: #102846; z-index: 1; }
 .gear-art .gear-photo-fallback[hidden] { display: none !important; }
 .gear-art small { z-index: 2; }
+
+/* Friendly equipment graphic while an actual PNG has not yet been uploaded. */
+.gear-art .gear-photo-fallback {
+  background:radial-gradient(circle at 50% 42%,#2b5b9b66,transparent 54%),linear-gradient(135deg,#16345a,#0b203d);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  color:#dceaff;
+}
+.gear-art .gear-photo-fallback[hidden] { display:none !important; }
+.gear-fallback-symbol { font-size:clamp(42px,5vw,64px);font-weight:500;color:#bdd8ff;line-height:1; }
+.gear-fallback-caption { font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8eaed6; }
