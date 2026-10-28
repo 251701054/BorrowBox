@@ -12,18 +12,16 @@ app.use(express.json());
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT || 4000),
+  port: Number(process.env.DB_PORT || 3306),
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: {
-    minVersion: "TLSv1.2",
-    rejectUnauthorized: true
-  },
+  ssl: { minVersion: "TLSv1.2" },
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
+
 
 app.get("/", (req, res) => {
   res.json({ message: "BorrowBox API is running" });
@@ -32,20 +30,30 @@ app.get("/", (req, res) => {
 
 app.get("/api/health", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT 1 AS databaseConnected");
+    const [rows] = await pool.query(
+      "SELECT 1 AS databaseConnected"
+    );
+
     res.json({
       status: "ok",
-      database: rows[0].databaseConnected === 1 ? "connected" : "unknown"
+      database: rows[0].databaseConnected === 1
+        ? "connected"
+        : "unknown"
     });
+
   } catch (error) {
-    console.error("Database health check failed:", error.code, error.message);
+    console.error(
+      "DATABASE CONNECTION ERROR:",
+      error.code,
+      error.message
+    );
+
     res.status(500).json({
       status: "error",
       message: "Database connection failed"
     });
   }
 });
-
 
 // Authentication routes are public; all other /api routes require a JWT.
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -110,15 +118,27 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-function authenticateToken(req, res, next) {
+async function authenticateToken(req, res, next) {
   const header = req.headers.authorization || "";
   const accessToken = header.startsWith("Bearer ") ? header.slice(7) : "";
   if (!accessToken) return res.status(401).json({ error: "Please sign in first." });
   try {
-    req.user = jwt.verify(accessToken, JWT_SECRET);
+    const claims = jwt.verify(accessToken, JWT_SECRET);
+    // Read the current role from MySQL on every protected request. A stale JWT
+    // must not retain administrator permissions after a role change.
+    const [rows] = await pool.execute(
+      "SELECT user_id, full_name, email, role FROM users WHERE user_id = ? LIMIT 1",
+      [claims.user_id]
+    );
+    if (!rows.length) return res.status(401).json({ error: "Account no longer exists. Please sign in again." });
+    req.user = { ...claims, ...rows[0] };
     next();
-  } catch {
-    return res.status(401).json({ error: "Session expired. Please sign in again." });
+  } catch (error) {
+    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError" || error.name === "NotBeforeError") {
+      return res.status(401).json({ error: "Session expired. Please sign in again." });
+    }
+    console.error("Authentication check failed:", error.message);
+    return res.status(500).json({ error: "Could not verify your session." });
   }
 }
 
@@ -134,7 +154,24 @@ app.use("/api", (req, res, next) => {
   return authenticateToken(req, res, next);
 });
 
+// Return the current account and its live database role for frontend route guards.
+app.get("/api/auth/me", async (req, res) => {
+  try {
+    const [rows] = await pool.execute("SELECT user_id, full_name, email, role FROM users WHERE user_id = ? LIMIT 1", [req.user.user_id]);
+    if (!rows.length) return res.status(401).json({ error: "Account no longer exists. Please sign in again." });
+    // Keep role claims current after an administrator changes a user's role.
+    req.user.role = rows[0].role;
+    res.json({ user: rows[0] });
+  } catch (error) {
+    console.error("Current user lookup error:", error.message);
+    res.status(500).json({ error: "Could not verify your account." });
+  }
+});
+
 // Protect management endpoints and state-changing administrator actions.
+app.use("/api/equipment", (req, res, next) =>
+  ["POST", "PUT", "DELETE"].includes(req.method) ? requireAdmin(req, res, next) : next()
+);
 app.use("/api/users", requireAdmin);
 app.use("/api/maintenance", requireAdmin);
 app.use("/api/borrowings/:id/return", (req, res, next) => req.method === "PATCH" ? requireAdmin(req, res, next) : next());
@@ -231,130 +268,75 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
-
-// Administrator-only role assignment.
-app.patch("/api/users/:id/role", async (req, res) => {
-  const userId = Number(req.params.id);
-  const { role } = req.body;
-  if (!Number.isInteger(userId) || userId < 1) return res.status(400).json({ error: "A valid user ID is required." });
-  if (!["Student", "Staff", "Admin"].includes(role)) return res.status(400).json({ error: "Role must be Student, Staff, or Admin." });
-  if (userId === Number(req.user.user_id) && role !== "Admin") return res.status(400).json({ error: "You cannot remove your own administrator role." });
-
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
-    const [targets] = await connection.execute("SELECT user_id, role FROM users WHERE user_id = ? FOR UPDATE", [userId]);
-    if (!targets.length) { await connection.rollback(); return res.status(404).json({ error: "User not found." }); }
-    if (targets[0].role === "Admin" && role !== "Admin") {
-      const [[count]] = await connection.query("SELECT COUNT(*) AS total FROM users WHERE role = 'Admin'");
-      if (Number(count.total) <= 1) { await connection.rollback(); return res.status(409).json({ error: "The last administrator cannot be demoted." }); }
-    }
-    await connection.execute("UPDATE users SET role = ? WHERE user_id = ?", [role, userId]);
-    await connection.commit();
-    res.json({ message: "User role updated successfully.", user_id: userId, role });
-  } catch (error) {
-    await connection.rollback();
-    console.error("Role update error:", error.message);
-    res.status(500).json({ error: "Could not update user role." });
-  } finally { connection.release(); }
-});
-
-// Administrator-only user removal.
-app.delete("/api/users/:id", async (req, res) => {
-  const userId = Number(req.params.id);
-  if (!Number.isInteger(userId) || userId < 1) return res.status(400).json({ error: "A valid user ID is required." });
-  if (userId === Number(req.user.user_id)) return res.status(400).json({ error: "You cannot delete your own account while signed in." });
-
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
-    const [targets] = await connection.execute("SELECT user_id, role FROM users WHERE user_id = ? FOR UPDATE", [userId]);
-    if (!targets.length) { await connection.rollback(); return res.status(404).json({ error: "User not found." }); }
-    if (targets[0].role === "Admin") {
-      const [[count]] = await connection.query("SELECT COUNT(*) AS total FROM users WHERE role = 'Admin'");
-      if (Number(count.total) <= 1) { await connection.rollback(); return res.status(409).json({ error: "The last administrator cannot be deleted." }); }
-    }
-    await connection.execute("DELETE FROM users WHERE user_id = ?", [userId]);
-    await connection.commit();
-    res.json({ message: "User deleted successfully.", user_id: userId });
-  } catch (error) {
-    await connection.rollback();
-    if (["ER_ROW_IS_REFERENCED_2", "ER_ROW_IS_REFERENCED"].includes(error.code)) {
-      return res.status(409).json({ error: "This user has borrowing or reservation records and cannot be deleted. Change their role instead." });
-    }
-    console.error("User delete error:", error.message);
-    res.status(500).json({ error: "Could not delete user." });
-  } finally { connection.release(); }
-});
-
 // Borrowings
 app.get("/api/borrowings", async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT b.borrowing_id, u.full_name, e.name AS equipment_name,
-             b.borrow_date, b.due_date, b.return_date, b.status
+    const sql = `
+      SELECT b.borrowing_id, b.user_id, b.equipment_id, u.full_name,
+             e.name AS equipment_name, b.borrow_date, b.due_date,
+             b.return_date, b.status
       FROM borrowings b
       JOIN users u ON b.user_id = u.user_id
       JOIN equipment e ON b.equipment_id = e.equipment_id
+      ${req.user.role === "Admin" ? "" : "WHERE b.user_id = ?"}
       ORDER BY b.borrowing_id DESC
-    `);
+    `;
+    const [rows] = req.user.role === "Admin"
+      ? await pool.query(sql)
+      : await pool.execute(sql, [req.user.user_id]);
     res.json(rows);
   } catch (error) {
+    console.error("Borrowing list error:", error.message);
     res.status(500).json({ error: "Could not load borrowing records" });
   }
 });
 
 app.post("/api/borrowings", async (req, res) => {
-  // The borrower is derived from the authenticated JWT, never browser-supplied input.
-  const userId = Number(req.user?.user_id);
-  const equipmentId = Number(req.body?.equipment_id);
-  const dueDate = String(req.body?.due_date || "");
-  const today = new Date().toISOString().slice(0, 10);
-  if (!Number.isInteger(userId) || userId < 1) {
-    return res.status(401).json({ error: "Sign in to borrow equipment." });
+  const equipmentId = Number(req.body.equipment_id);
+  const dueDate = String(req.body.due_date || "");
+  if (!Number.isInteger(equipmentId) || equipmentId < 1 || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+    return res.status(400).json({ error: "A valid equipment_id and due_date (YYYY-MM-DD) are required" });
   }
-  if (!Number.isInteger(equipmentId) || equipmentId < 1 ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(dueDate) ||
-      !Number.isFinite(Date.parse(dueDate)) || dueDate <= today) {
-    return res.status(400).json({ error: "Choose equipment and a valid future return date." });
+  if (dueDate <= new Date().toISOString().slice(0, 10)) {
+    return res.status(400).json({ error: "The due date must be after today" });
   }
+
   let connection;
   try {
     connection = await pool.getConnection();
     await connection.beginTransaction();
-    const [accounts] = await connection.execute("SELECT user_id FROM users WHERE user_id = ? LIMIT 1", [userId]);
-    if (!accounts.length) {
-      await connection.rollback();
-      return res.status(401).json({ error: "Your account is no longer available. Please sign in again." });
-    }
     const [items] = await connection.execute(
-      "SELECT available_quantity FROM equipment WHERE equipment_id = ? FOR UPDATE", [equipmentId]
+      "SELECT available_quantity FROM equipment WHERE equipment_id = ? FOR UPDATE",
+      [equipmentId]
     );
     if (!items.length) {
       await connection.rollback();
       return res.status(404).json({ error: "Equipment not found" });
     }
-    if (Number(items[0].available_quantity) < 1) {
+    if (items[0].available_quantity < 1) {
       await connection.rollback();
       return res.status(409).json({ error: "No units of this equipment are available" });
     }
+
     const [result] = await connection.execute(
       "INSERT INTO borrowings (user_id, equipment_id, borrow_date, due_date, status) VALUES (?, ?, CURDATE(), ?, 'Borrowed')",
-      [userId, equipmentId, dueDate]
+      [req.user.user_id, equipmentId, dueDate]
     );
     await connection.execute(
-      "UPDATE equipment SET available_quantity = available_quantity - 1 WHERE equipment_id = ?", [equipmentId]
+      "UPDATE equipment SET available_quantity = available_quantity - 1 WHERE equipment_id = ?",
+      [equipmentId]
     );
     await connection.commit();
-    return res.status(201).json({ message: "Borrowing created", borrowing_id: result.insertId });
+    res.status(201).json({ message: "Borrowing created", borrowing_id: result.insertId });
   } catch (error) {
     if (connection) {
-      try { await connection.rollback(); } catch (_) { /* transaction might not have begun */ }
+      try { await connection.rollback(); } catch { /* transaction may not have started */ }
     }
-    console.error("Create borrowing failed:", error.code, error.message);
-    return res.status(500).json({ error: "Could not create borrowing" });
+    if (error.code === "ER_NO_REFERENCED_ROW_2") return res.status(400).json({ error: "The equipment record does not exist" });
+    console.error("Create borrowing error:", error.message);
+    res.status(500).json({ error: "Could not create borrowing" });
   } finally {
-    if (connection) connection.release();
+    connection?.release();
   }
 });
 
@@ -396,33 +378,40 @@ app.patch("/api/borrowings/:id/return", async (req, res) => {
 // Reservations
 app.get("/api/reservations", async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT r.reservation_id, u.full_name, e.name AS equipment_name,
+    const sql = `
+      SELECT r.reservation_id, r.user_id, u.full_name, e.name AS equipment_name,
              r.reservation_date, r.status
       FROM reservations r
       JOIN users u ON r.user_id = u.user_id
       JOIN equipment e ON r.equipment_id = e.equipment_id
+      ${req.user.role === "Admin" ? "" : "WHERE r.user_id = ?"}
       ORDER BY r.reservation_id DESC
-    `);
+    `;
+    const [rows] = req.user.role === "Admin"
+      ? await pool.query(sql)
+      : await pool.execute(sql, [req.user.user_id]);
     res.json(rows);
   } catch (error) {
+    console.error("Reservation list error:", error.message);
     res.status(500).json({ error: "Could not load reservations" });
   }
 });
 
 app.post("/api/reservations", async (req, res) => {
-  const { user_id, equipment_id, reservation_date } = req.body;
-  if (!Number.isInteger(Number(user_id)) || !Number.isInteger(Number(equipment_id))) {
-    return res.status(400).json({ error: "Valid user_id and equipment_id are required" });
+  const equipmentId = Number(req.body.equipment_id);
+  const reservationDate = String(req.body.reservation_date || new Date().toISOString().slice(0, 10));
+  if (!Number.isInteger(equipmentId) || equipmentId < 1 || !/^\d{4}-\d{2}-\d{2}$/.test(reservationDate)) {
+    return res.status(400).json({ error: "Valid equipment_id and reservation_date (YYYY-MM-DD) are required" });
   }
   try {
     const [result] = await pool.execute(
       "INSERT INTO reservations (user_id, equipment_id, reservation_date, status) VALUES (?, ?, ?, 'Pending')",
-      [Number(user_id), Number(equipment_id), reservation_date || new Date().toISOString().slice(0, 10)]
+      [req.user.user_id, equipmentId, reservationDate]
     );
     res.status(201).json({ message: "Reservation created", reservation_id: result.insertId });
   } catch (error) {
-    if (error.code === "ER_NO_REFERENCED_ROW_2") return res.status(400).json({ error: "The user or equipment ID does not exist" });
+    if (error.code === "ER_NO_REFERENCED_ROW_2") return res.status(400).json({ error: "The equipment record does not exist" });
+    console.error("Create reservation error:", error.message);
     res.status(500).json({ error: "Could not create reservation" });
   }
 });
