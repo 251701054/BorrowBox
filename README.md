@@ -1,2 +1,0 @@
-# BorrowBox
-DBMS project
