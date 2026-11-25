@@ -94,8 +94,9 @@ app.post("/api/auth/login", async (req, res) => {
   if (!email || !password) return res.status(400).json({ error: "Email and password are required." });
 
   try {
+    await ensureRoleManagementSchema();
     const [rows] = await pool.execute(
-      "SELECT user_id, full_name, email, role, password_hash FROM users WHERE email = ? LIMIT 1",
+      "SELECT user_id, full_name, email, role, password_hash, token_version FROM users WHERE email = ? LIMIT 1",
       [email]
     );
     if (!rows.length || !rows[0].password_hash || !(await bcrypt.compare(password, rows[0].password_hash))) {
@@ -103,7 +104,11 @@ app.post("/api/auth/login", async (req, res) => {
     }
     const account = rows[0];
     const token = jwt.sign(
-      { user_id: account.user_id, role: account.role },
+      {
+        user_id: account.user_id,
+        role: account.role,
+        token_version: Number(account.token_version ?? 1)
+      },
       JWT_SECRET,
       { expiresIn: "8h" }
     );
@@ -123,15 +128,24 @@ async function authenticateToken(req, res, next) {
   const accessToken = header.startsWith("Bearer ") ? header.slice(7) : "";
   if (!accessToken) return res.status(401).json({ error: "Please sign in first." });
   try {
+    await ensureRoleManagementSchema();
     const claims = jwt.verify(accessToken, JWT_SECRET);
-    // Read the current role from MySQL on every protected request. A stale JWT
-    // must not retain administrator permissions after a role change.
+    // Read the current role and token_version from MySQL on every protected request.
+    // A stale JWT must not retain administrator permissions after a role change.
     const [rows] = await pool.execute(
-      "SELECT user_id, full_name, email, role FROM users WHERE user_id = ? LIMIT 1",
+      "SELECT user_id, full_name, email, role, token_version FROM users WHERE user_id = ? LIMIT 1",
       [claims.user_id]
     );
     if (!rows.length) return res.status(401).json({ error: "Account no longer exists. Please sign in again." });
-    req.user = { ...claims, ...rows[0] };
+    if (claims.token_version !== undefined && Number(rows[0].token_version ?? 1) !== Number(claims.token_version)) {
+      return res.status(401).json({ error: "Your session has been invalidated after a role change. Please sign in again." });
+    }
+    req.user = {
+      user_id: rows[0].user_id,
+      full_name: rows[0].full_name,
+      email: rows[0].email,
+      role: rows[0].role
+    };
     next();
   } catch (error) {
     if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError" || error.name === "NotBeforeError") {
@@ -188,6 +202,37 @@ async function ensureColumn(sql) {
       console.warn("Schema check note:", error.code || error.message);
     }
   }
+}
+
+let roleSchemaReadyPromise = null;
+function ensureRoleManagementSchema() {
+  if (!roleSchemaReadyPromise) {
+    roleSchemaReadyPromise = ensureColumn(
+      "ALTER TABLE users ADD COLUMN token_version int NOT NULL DEFAULT 1 AFTER password_hash"
+    ).then(() =>
+      pool.query(`
+        CREATE TABLE IF NOT EXISTS role_audit_logs (
+          audit_id int NOT NULL AUTO_INCREMENT,
+          target_user_id int NOT NULL,
+          previous_role enum('Student','Staff','Admin') NOT NULL,
+          new_role enum('Student','Staff','Admin') NOT NULL,
+          changed_by_user_id int NOT NULL,
+          reason varchar(255) DEFAULT NULL,
+          changed_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (audit_id),
+          KEY idx_role_audit_target (target_user_id),
+          KEY idx_role_audit_actor (changed_by_user_id),
+          KEY idx_role_audit_changed_at (changed_at),
+          CONSTRAINT role_audit_logs_ibfk_1 FOREIGN KEY (target_user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+          CONSTRAINT role_audit_logs_ibfk_2 FOREIGN KEY (changed_by_user_id) REFERENCES users (user_id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+      `)
+    ).catch(error => {
+      roleSchemaReadyPromise = null;
+      console.warn("Role schema check note:", error.code || error.message);
+    });
+  }
+  return roleSchemaReadyPromise;
 }
 
 let schemaReadyPromise = null;
@@ -278,6 +323,8 @@ app.delete("/api/equipment/:id", async (req, res) => {
 });
 
 // Users
+const ALLOWED_ROLES = ["Student", "Staff", "Admin"];
+
 app.get("/api/users", async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -289,9 +336,31 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+app.get("/api/users/audit", async (req, res) => {
+  try {
+    await ensureRoleManagementSchema();
+    const [rows] = await pool.query(`
+      SELECT a.audit_id, a.target_user_id,
+             tu.full_name AS target_name, tu.email AS target_email,
+             a.previous_role, a.new_role,
+             a.changed_by_user_id, au.full_name AS changed_by_name,
+             a.reason, a.changed_at
+      FROM role_audit_logs a
+      LEFT JOIN users tu ON a.target_user_id = tu.user_id
+      LEFT JOIN users au ON a.changed_by_user_id = au.user_id
+      ORDER BY a.audit_id DESC
+      LIMIT 50
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error("Role audit load error:", error.message);
+    res.status(500).json({ error: "Could not load role change audit logs" });
+  }
+});
+
 app.post("/api/users", async (req, res) => {
   const { full_name, email, role = "Student" } = req.body;
-  if (!full_name || !email || !["Student", "Staff", "Admin"].includes(role)) {
+  if (!full_name || !email || !ALLOWED_ROLES.includes(role)) {
     return res.status(400).json({ error: "full_name, email, and a valid role are required" });
   }
 
@@ -299,12 +368,104 @@ app.post("/api/users", async (req, res) => {
     await ensureCareMaintenanceSchema();
     const [result] = await pool.execute(
       "INSERT INTO users (full_name, email, role) VALUES (?, ?, ?)",
-      [full_name.trim(), email.trim(), role]
+      [full_name.trim(), email.trim().toLowerCase(), role]
     );
     res.status(201).json({ message: "User added", user_id: result.insertId });
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") return res.status(409).json({ error: "That email is already registered" });
     res.status(500).json({ error: "Could not add user" });
+  }
+});
+
+app.patch("/api/users/:id/role", async (req, res) => {
+  const targetUserId = Number(req.params.id);
+  if (!Number.isInteger(targetUserId) || targetUserId < 1) {
+    return res.status(400).json({ error: "Invalid user ID." });
+  }
+
+  const requestedRole = typeof req.body?.role === "string" ? req.body.role.trim() : "";
+  if (!ALLOWED_ROLES.includes(requestedRole)) {
+    return res.status(400).json({ error: "Invalid role. Allowed roles are Student, Staff, and Admin." });
+  }
+
+  const rawReason = req.body?.reason != null ? String(req.body.reason).trim() : "";
+  if (rawReason.length > 255) {
+    return res.status(400).json({ error: "Reason must be 255 characters or fewer." });
+  }
+  const reason = rawReason || null;
+
+  let connection;
+  try {
+    await ensureRoleManagementSchema();
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [targetRows] = await connection.execute(
+      "SELECT user_id, full_name, email, role FROM users WHERE user_id = ? FOR UPDATE",
+      [targetUserId]
+    );
+    if (!targetRows.length) {
+      await connection.rollback();
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const targetUser = targetRows[0];
+    if (targetUser.role === requestedRole) {
+      await connection.rollback();
+      return res.status(400).json({ error: `User already has the ${requestedRole} role.` });
+    }
+
+    // Last-administrator protection with row-level locking on all Admin rows
+    // so concurrent demotion requests cannot leave BorrowBox without an admin.
+    if (targetUser.role === "Admin" && requestedRole !== "Admin") {
+      const [adminRows] = await connection.execute(
+        "SELECT user_id FROM users WHERE role = 'Admin' FOR UPDATE"
+      );
+      if (adminRows.length <= 1) {
+        await connection.rollback();
+        return res.status(409).json({
+          error: "Role change denied. BorrowBox must have at least one administrator."
+        });
+      }
+    }
+
+    await connection.execute(
+      "UPDATE users SET role = ?, token_version = token_version + 1 WHERE user_id = ?",
+      [requestedRole, targetUserId]
+    );
+
+    await connection.execute(
+      "INSERT INTO role_audit_logs (target_user_id, previous_role, new_role, changed_by_user_id, reason) VALUES (?, ?, ?, ?, ?)",
+      [targetUserId, targetUser.role, requestedRole, req.user.user_id, reason]
+    );
+
+    await connection.commit();
+
+    const selfDemoted =
+      targetUserId === Number(req.user.user_id) &&
+      targetUser.role === "Admin" &&
+      requestedRole !== "Admin";
+
+    res.json({
+      message: `User role successfully changed from ${targetUser.role} to ${requestedRole}.`,
+      user: {
+        user_id: targetUser.user_id,
+        full_name: targetUser.full_name,
+        email: targetUser.email,
+        role: requestedRole
+      },
+      previousRole: targetUser.role,
+      newRole: requestedRole,
+      selfDemoted
+    });
+  } catch (error) {
+    if (connection) {
+      try { await connection.rollback(); } catch { /* ignore rollback error */ }
+    }
+    console.error("Role update error:", error.message);
+    res.status(500).json({ error: "Could not update user role." });
+  } finally {
+    connection?.release();
   }
 });
 
@@ -578,6 +739,13 @@ app.get("/api/dashboard", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Could not load dashboard summary" });
   }
+});
+
+app.use((err, req, res, next) => {
+  if (err && err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "Invalid JSON request body." });
+  }
+  return next(err);
 });
 
 const port = Number(process.env.PORT || 3000);
