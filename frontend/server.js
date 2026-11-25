@@ -11,11 +11,11 @@ app.use(cors());
 app.use(express.json());
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
+  host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "shiva",
-  database: process.env.DB_NAME || "BorrowBox",
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -106,12 +106,18 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-function authenticateToken(req, res, next) {
+async function authenticateToken(req, res, next) {
   const header = req.headers.authorization || "";
   const accessToken = header.startsWith("Bearer ") ? header.slice(7) : "";
   if (!accessToken) return res.status(401).json({ error: "Please sign in first." });
   try {
-    req.user = jwt.verify(accessToken, JWT_SECRET);
+    const claims = jwt.verify(accessToken, JWT_SECRET);
+    const [rows] = await pool.execute(
+      "SELECT user_id, full_name, email, role FROM users WHERE user_id = ? LIMIT 1",
+      [claims.user_id]
+    );
+    if (!rows.length) return res.status(401).json({ error: "Account no longer exists. Please sign in again." });
+    req.user = { ...claims, ...rows[0] };
     next();
   } catch {
     return res.status(401).json({ error: "Session expired. Please sign in again." });
@@ -242,8 +248,8 @@ app.patch("/api/users/:id/role", async (req, res) => {
     const [targets] = await connection.execute("SELECT user_id, role FROM users WHERE user_id = ? FOR UPDATE", [userId]);
     if (!targets.length) { await connection.rollback(); return res.status(404).json({ error: "User not found." }); }
     if (targets[0].role === "Admin" && role !== "Admin") {
-      const [[count]] = await connection.query("SELECT COUNT(*) AS total FROM users WHERE role = 'Admin'");
-      if (Number(count.total) <= 1) { await connection.rollback(); return res.status(409).json({ error: "The last administrator cannot be demoted." }); }
+      const [adminRows] = await connection.execute("SELECT user_id FROM users WHERE role = 'Admin' FOR UPDATE");
+      if (adminRows.length <= 1) { await connection.rollback(); return res.status(409).json({ error: "Role change denied. BorrowBox must have at least one administrator." }); }
     }
     await connection.execute("UPDATE users SET role = ? WHERE user_id = ?", [role, userId]);
     await connection.commit();

@@ -13,6 +13,30 @@ function clearSession() {
   });
 }
 
+function saveCurrentUser(user) {
+  currentUser = user;
+  const serialized = JSON.stringify(user);
+  if (localStorage.getItem("borrowbox_token")) {
+    localStorage.setItem("borrowbox_user", serialized);
+  } else if (sessionStorage.getItem("borrowbox_token")) {
+    sessionStorage.setItem("borrowbox_user", serialized);
+  }
+}
+
+async function syncCurrentUser() {
+  if (!token()) return null;
+  try {
+    const data = await api("/auth/me");
+    if (data?.user) {
+      saveCurrentUser(data.user);
+      return data.user;
+    }
+  } catch {
+    // api() handles 401 redirect; network errors keep cached user until reachable
+  }
+  return currentUser;
+}
+
 let currentUser = null;
 try {
   currentUser = JSON.parse(savedValue("borrowbox_user") || "null");
@@ -802,102 +826,384 @@ async function loadReservations() {
   }
 }
 
+const ROLE_PERMISSIONS = {
+  Student: [
+    "Access the Student workspace dashboard",
+    "Browse equipment and submit borrowing requests",
+    "Create equipment reservations and view personal history",
+    "View care guidelines and submit maintenance issue reports"
+  ],
+  Staff: [
+    "Access the Staff workspace dashboard",
+    "Borrow campus equipment and manage personal checkouts",
+    "Submit and track equipment reservations",
+    "Access care guidelines and report maintenance issues"
+  ],
+  Admin: [
+    "Full access to the Administrator dashboard and analytics",
+    "Add, edit, and delete campus equipment inventory",
+    "Approve or reject reservations and mark borrowings returned",
+    "Manage maintenance ticket statuses and User Management roles"
+  ]
+};
+
+function openEditRoleModal(person, onUpdated) {
+  if (!person) return;
+  const prevFocus = document.activeElement;
+  const isSelf = Number(person.user_id) === Number(currentUser?.user_id);
+  let selectedRole = person.role;
+  let submitting = false;
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "bb-modal-backdrop";
+  backdrop.innerHTML = `
+    <div class="bb-modal" role="dialog" aria-modal="true" aria-labelledby="edit-role-title">
+      <div class="bb-modal-head">
+        <div>
+          <small class="eyebrow">ROLE ASSIGNMENT</small>
+          <h2 id="edit-role-title">Edit User Role</h2>
+        </div>
+        <button type="button" class="btn ghost icon-only" data-modal-close aria-label="Close modal">✕</button>
+      </div>
+
+      <div class="bb-modal-body">
+        <div class="role-user-card">
+          <div class="role-user-identity">
+            <strong>${esc(person.full_name)}${isSelf ? '<span class="self-badge">You</span>' : ""}</strong>
+            <span>${esc(person.email)}</span>
+          </div>
+          <div class="role-user-meta">
+            <span class="mono" style="font-size:12px;color:var(--text-secondary)">ID #${esc(person.user_id)}</span>
+            ${badge(person.role)}
+          </div>
+        </div>
+
+        <span class="role-field-label">Select new role</span>
+        <div class="role-options-grid" role="radiogroup" aria-label="New role">
+          ${["Student", "Staff", "Admin"]
+            .map(
+              role => `
+            <label class="role-option-card ${role === selectedRole ? "selected" : ""}" data-role-card="${role}">
+              <input type="radio" name="new-user-role" value="${role}" ${role === selectedRole ? "checked" : ""}>
+              ${badge(role)}
+              <small>${role === "Student" ? "Standard borrower" : role === "Staff" ? "Staff borrower" : "Full system access"}</small>
+            </label>`
+            )
+            .join("")}
+        </div>
+
+        <div class="role-permissions-box" id="role-permissions-box"></div>
+        <div id="role-warning-slot"></div>
+
+        <label class="role-field-label" for="role-change-reason">Reason for change (optional)</label>
+        <input id="role-change-reason" class="role-reason-input" maxlength="255" placeholder="e.g., Promoted to lab coordinator">
+
+        <label class="role-confirm-check" id="role-confirm-wrap">
+          <input type="checkbox" id="role-confirm-checkbox">
+          <span id="role-confirm-label">I confirm this role change is intended.</span>
+        </label>
+
+        <div class="role-modal-error hidden" id="role-modal-error" role="alert"></div>
+      </div>
+
+      <div class="bb-modal-foot">
+        <button type="button" class="btn secondary" data-modal-close>Cancel</button>
+        <button type="button" class="btn primary" id="role-submit-btn" disabled>Update Role</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+
+  const permBox = backdrop.querySelector("#role-permissions-box");
+  const warningSlot = backdrop.querySelector("#role-warning-slot");
+  const confirmWrap = backdrop.querySelector("#role-confirm-wrap");
+  const confirmCheckbox = backdrop.querySelector("#role-confirm-checkbox");
+  const confirmLabel = backdrop.querySelector("#role-confirm-label");
+  const reasonInput = backdrop.querySelector("#role-change-reason");
+  const errorBox = backdrop.querySelector("#role-modal-error");
+  const submitBtn = backdrop.querySelector("#role-submit-btn");
+  const closeBtns = backdrop.querySelectorAll("[data-modal-close]");
+
+  function renderDynamicState() {
+    backdrop.querySelectorAll("[data-role-card]").forEach(card => {
+      card.classList.toggle("selected", card.dataset.roleCard === selectedRole);
+    });
+
+    const perms = ROLE_PERMISSIONS[selectedRole] || [];
+    permBox.innerHTML = `
+      <h3>${esc(selectedRole)} permissions</h3>
+      <ul>${perms.map(p => `<li>${esc(p)}</li>`).join("")}</ul>
+    `;
+
+    const isPromotionToAdmin = person.role !== "Admin" && selectedRole === "Admin";
+    const isAdminDemotion = person.role === "Admin" && selectedRole !== "Admin";
+    const isSelfDemotion = isSelf && isAdminDemotion;
+
+    let warningHtml = "";
+    if (isPromotionToAdmin) {
+      warningHtml = `
+        <div class="role-warning-banner" role="alert">
+          <span>This user will receive administrative privileges, including access to protected management functionality. Confirm that this permission is intended.</span>
+        </div>`;
+    } else if (isAdminDemotion) {
+      warningHtml = `
+        <div class="role-warning-banner danger" role="alert">
+          <span>This user will lose administrative privileges and will no longer have access to administrator-only functionality.${
+            isSelfDemotion
+              ? " Because this is your own account, your active administrator session will be invalidated immediately."
+              : ""
+          }</span>
+        </div>`;
+    }
+    warningSlot.innerHTML = warningHtml;
+
+    const unchanged = selectedRole === person.role;
+    confirmWrap.classList.toggle("hidden", unchanged);
+    if (unchanged) {
+      confirmCheckbox.checked = false;
+    }
+    confirmLabel.textContent = isSelfDemotion
+      ? "I understand I will immediately lose administrator access and must sign in again."
+      : "I confirm this role change is intended.";
+
+    submitBtn.disabled = submitting || unchanged || !confirmCheckbox.checked;
+  }
+
+  backdrop.querySelectorAll('input[name="new-user-role"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      selectedRole = radio.value;
+      confirmCheckbox.checked = false;
+      errorBox.classList.add("hidden");
+      renderDynamicState();
+    });
+  });
+
+  confirmCheckbox.addEventListener("change", () => {
+    errorBox.classList.add("hidden");
+    renderDynamicState();
+  });
+
+  const close = () => {
+    if (submitting) return;
+    document.removeEventListener("keydown", onKey);
+    backdrop.remove();
+    if (prevFocus && typeof prevFocus.focus === "function") prevFocus.focus();
+  };
+
+  const onKey = e => {
+    if (e.key === "Escape") close();
+  };
+
+  document.addEventListener("keydown", onKey);
+  backdrop.addEventListener("click", e => {
+    if (e.target === backdrop) close();
+  });
+  closeBtns.forEach(btn => btn.addEventListener("click", close));
+
+  submitBtn.addEventListener("click", async () => {
+    if (submitting || selectedRole === person.role || !confirmCheckbox.checked) return;
+    submitting = true;
+    errorBox.classList.add("hidden");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Updating Role…";
+    closeBtns.forEach(b => (b.disabled = true));
+
+    try {
+      const result = await api(`/users/${person.user_id}/role`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          role: selectedRole,
+          reason: reasonInput.value.trim() || undefined
+        })
+      });
+
+      submitting = false;
+      document.removeEventListener("keydown", onKey);
+      backdrop.remove();
+
+      if (result.selfDemoted) {
+        clearSession();
+        toast("Your role was updated. Please sign in again.");
+        setTimeout(() => location.replace("login.html"), 900);
+        return;
+      }
+
+      toast(result.message || `User role successfully changed from ${person.role} to ${selectedRole}.`);
+      if (typeof onUpdated === "function") await onUpdated(result);
+      if (prevFocus && typeof prevFocus.focus === "function") prevFocus.focus();
+    } catch (err) {
+      submitting = false;
+      submitBtn.textContent = "Update Role";
+      closeBtns.forEach(b => (b.disabled = false));
+      errorBox.textContent = err.message || "Could not update user role.";
+      errorBox.classList.remove("hidden");
+      toast(err.message || "Could not update user role.", true);
+      renderDynamicState();
+    }
+  });
+
+  renderDynamicState();
+  backdrop.querySelector(`input[value="${selectedRole}"]`)?.focus();
+}
+
+async function loadRoleAuditLogs() {
+  const auditBody = $("#users-audit-body");
+  if (!auditBody) return;
+  try {
+    const logs = await api("/users/audit");
+    const list = Array.isArray(logs) ? logs : [];
+    auditBody.innerHTML = list.length
+      ? list
+          .map(
+            item => `<tr>
+              <td><b>${esc(item.target_name || `User #${item.target_user_id}`)}</b><small class="mono">${esc(item.target_email || `#${item.target_user_id}`)}</small></td>
+              <td>${badge(item.previous_role)} <span style="color:var(--text-muted);margin:0 4px">→</span> ${badge(item.new_role)}</td>
+              <td>${esc(item.changed_by_name || `Admin #${item.changed_by_user_id}`)}</td>
+              <td>${esc(item.reason || "—")}</td>
+              <td class="mono" style="font-size:12px">${esc(item.changed_at ? new Date(item.changed_at).toLocaleString() : "—")}</td>
+            </tr>`
+          )
+          .join("")
+      : '<tr><td colspan="5"><div class="empty"><b>No role changes recorded yet</b><p>Administrative role updates will appear here.</p></div></td></tr>';
+  } catch (err) {
+    auditBody.innerHTML = `<tr><td colspan="5">Unable to load audit logs: ${esc(err.message)}</td></tr>`;
+  }
+}
+
 async function loadUsers() {
   const body = $("#users-body");
   if (!body) return;
 
+  const PAGE_SIZE = 10;
+  let roleFilter = "";
+  let currentPage = 1;
+
   try {
     users = await api("/users");
     users = Array.isArray(users) ? users : [];
+    loadRoleAuditLogs();
+
+    function updateSummaryCards() {
+      $("#users-total").textContent = users.length;
+      $("#users-student").textContent = users.filter(x => x.role === "Student").length;
+      if ($("#users-staff")) $("#users-staff").textContent = users.filter(x => x.role === "Staff").length;
+      $("#users-admin").textContent = users.filter(x => x.role === "Admin").length;
+    }
 
     function render() {
-      const q = ($("#users-search")?.value || "").toLowerCase();
-      const list = users.filter(x => `${x.full_name} ${x.email} ${x.role}`.toLowerCase().includes(q));
-      $("#users-total").textContent = users.length;
-      $("#users-admin").textContent = users.filter(x => x.role === "Admin").length;
-      $("#users-student").textContent = users.filter(x => x.role === "Student").length;
+      updateSummaryCards();
+      const q = ($("#users-search")?.value || "").toLowerCase().trim();
+      const hasActiveFilters = Boolean(q || roleFilter);
+      $("#users-clear-filters")?.classList.toggle("hidden", !hasActiveFilters);
+
+      const filtered = users.filter(x => {
+        const matchesRole = !roleFilter || x.role === roleFilter;
+        const matchesQuery =
+          !q ||
+          `${x.full_name || ""} ${x.email || ""} ${x.role || ""} #${x.user_id} ${x.user_id}`
+            .toLowerCase()
+            .includes(q);
+        return matchesRole && matchesQuery;
+      });
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const pageItems = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+
+      if ($("#users-filtered-count")) {
+        $("#users-filtered-count").textContent = `${filtered.length} user${filtered.length === 1 ? "" : "s"}`;
+      }
+
+      const pagination = $("#users-pagination");
+      if (pagination) {
+        pagination.classList.toggle("hidden", filtered.length <= PAGE_SIZE);
+        const startDisplay = filtered.length ? startIndex + 1 : 0;
+        const endDisplay = Math.min(startIndex + PAGE_SIZE, filtered.length);
+        $("#users-page-info").textContent = `Showing ${startDisplay}–${endDisplay} of ${filtered.length} (Page ${currentPage} of ${totalPages})`;
+        $("#users-prev-page").disabled = currentPage <= 1;
+        $("#users-next-page").disabled = currentPage >= totalPages;
+      }
 
       body.innerHTML =
-        list
-          .map(
-            x => `<tr>
-              <td><b class="person"><span>${esc((x.full_name || "?").split(/\s+/).map(y => y[0]).slice(0, 2).join("").toUpperCase())}</span>${esc(x.full_name)}</b></td>
+        pageItems
+          .map(x => {
+            const isSelf = Number(x.user_id) === Number(currentUser?.user_id);
+            const initials = (x.full_name || "?")
+              .split(/\s+/)
+              .map(y => y[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase();
+            return `<tr>
+              <td class="mono">#${esc(x.user_id)}</td>
+              <td><b class="person"><span>${esc(initials)}</span>${esc(x.full_name)}${isSelf ? '<span class="self-badge">You</span>' : ""}</b></td>
               <td>${esc(x.email)}</td>
+              <td>${badge(x.role)}</td>
               <td>${
                 admin()
-                  ? `<select class="inline-select user-role-select" data-role-user="${esc(x.user_id)}" aria-label="Role for ${esc(x.full_name)}"><option value="Student" ${x.role === "Student" ? "selected" : ""}>Student</option><option value="Staff" ${x.role === "Staff" ? "selected" : ""}>Staff</option><option value="Admin" ${x.role === "Admin" ? "selected" : ""}>Admin</option></select>`
-                  : badge(x.role)
-              }</td>
-              <td class="mono">#${esc(x.user_id)}</td>
-              <td>${
-                admin() && Number(x.user_id) !== Number(currentUser?.user_id)
-                  ? `<button type="button" class="table-action danger" data-delete-user="${esc(x.user_id)}">Remove</button>`
+                  ? `<button type="button" class="table-action" data-edit-role="${esc(x.user_id)}">Edit Role</button>`
                   : "—"
               }</td>
-            </tr>`
-          )
-          .join("") || '<tr><td colspan="5"><div class="empty"><b>No people found</b><p>No accounts match your search.</p></div></td></tr>';
+            </tr>`;
+          })
+          .join("") ||
+        '<tr><td colspan="5"><div class="empty"><b>No users found</b><p>No accounts match your search or role filter.</p></div></td></tr>';
 
-      body.querySelectorAll("[data-role-user]").forEach(sel =>
-        sel.addEventListener("change", async () => {
-          const previous = users.find(u => String(u.user_id) === sel.dataset.roleUser)?.role;
-          if (!previous) return;
-          const ok = await bbConfirm({
-            title: "Change user role",
-            message: `Change this user's role from ${previous} to ${sel.value}?`,
-            confirmText: "Update role"
-          });
-          if (!ok) {
-            sel.value = previous || "Student";
-            return;
-          }
-          sel.disabled = true;
-          try {
-            await api(`/users/${sel.dataset.roleUser}/role`, {
-              method: "PATCH",
-              body: JSON.stringify({ role: sel.value })
-            });
-            toast("User role updated.");
-            users = await api("/users");
-            render();
-          } catch (err) {
-            toast(err.message, true);
-            sel.value = previous;
-          } finally {
-            sel.disabled = false;
-          }
-        })
-      );
-
-      body.querySelectorAll("[data-delete-user]").forEach(btn =>
-        btn.addEventListener("click", async () => {
-          const person = users.find(u => String(u.user_id) === btn.dataset.deleteUser);
+      body.querySelectorAll("[data-edit-role]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const person = users.find(u => String(u.user_id) === btn.dataset.editRole);
           if (!person) return;
-          const ok = await bbConfirm({
-            title: "Remove user",
-            message: `Remove ${person.full_name} from BorrowBox? This cannot be undone.`,
-            confirmText: "Remove user",
-            danger: true
-          });
-          if (!ok) return;
-          btn.disabled = true;
-          try {
-            await api(`/users/${btn.dataset.deleteUser}`, { method: "DELETE" });
-            toast("User removed.");
+          openEditRoleModal(person, async () => {
             users = await api("/users");
+            users = Array.isArray(users) ? users : [];
             render();
-          } catch (err) {
-            toast(err.message, true);
-          } finally {
-            btn.disabled = false;
-          }
-        })
-      );
+            loadRoleAuditLogs();
+          });
+        });
+      });
     }
 
     if (!body.dataset.bound) {
       body.dataset.bound = "1";
-      $("#users-search")?.addEventListener("input", debounce(render, 150));
+      $("#users-search")?.addEventListener(
+        "input",
+        debounce(() => {
+          currentPage = 1;
+          render();
+        }, 150)
+      );
+
+      $$("[data-role-filter]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          roleFilter = btn.dataset.roleFilter || "";
+          currentPage = 1;
+          $$("[data-role-filter]").forEach(b => b.classList.toggle("active", b === btn));
+          render();
+        });
+      });
+
+      $("#users-clear-filters")?.addEventListener("click", () => {
+        roleFilter = "";
+        currentPage = 1;
+        if ($("#users-search")) $("#users-search").value = "";
+        $$("[data-role-filter]").forEach(b => b.classList.toggle("active", (b.dataset.roleFilter || "") === ""));
+        render();
+      });
+
+      $("#users-prev-page")?.addEventListener("click", () => {
+        if (currentPage > 1) {
+          currentPage--;
+          render();
+        }
+      });
+
+      $("#users-next-page")?.addEventListener("click", () => {
+        currentPage++;
+        render();
+      });
+
+      $("#refresh-audit-btn")?.addEventListener("click", loadRoleAuditLogs);
       $("#toggle-user-form")?.addEventListener("click", () => $("#user-form-panel").classList.toggle("hidden"));
       $("#close-user-form")?.addEventListener("click", () => $("#user-form-panel").classList.add("hidden"));
       $("#user-form")?.addEventListener("submit", async e => {
@@ -912,12 +1218,14 @@ async function loadUsers() {
               role: $("#user-role").value
             })
           });
-          m.textContent = "Person added successfully.";
+          m.textContent = "User added successfully.";
           m.className = "success-text";
           e.target.reset();
           users = await api("/users");
+          users = Array.isArray(users) ? users : [];
+          currentPage = 1;
           render();
-          toast("Person added to BorrowBox.");
+          toast("User added to BorrowBox.");
         } catch (err) {
           m.textContent = err.message;
           m.className = "error-text";
@@ -1161,11 +1469,13 @@ async function loadMaintenance() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   if (!currentUser || !token()) {
     location.replace("login.html");
     return;
   }
+
+  await syncCurrentUser();
 
   // Students and Staff must not open administrator-only pages.
   const adminPage = ["users.html", "admin-access.html"].some(page => location.pathname.endsWith(page));

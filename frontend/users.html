@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>People &amp; Roles · BorrowBox</title>
+    <title>User Management · BorrowBox</title>
     <link rel="icon" type="image/png" href="favicon.png?v=2">
     <link rel="stylesheet" href="style.css?v=dark-2026">
   </head>
@@ -53,9 +53,9 @@
           </a>
 
           <p class="nav-label manage-label admin-only">Administration</p>
-          <a class="active admin-only" href="users.html" title="People &amp; roles">
+          <a class="active admin-only" href="users.html" title="User Management">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>People &amp; roles</span>
+            <span>User Management</span>
           </a>
           <a class="admin-only" href="admin-access.html" title="Admin access">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -66,7 +66,7 @@
         <div class="sidebar-footer">
           <div class="side-promo">
             <b>Directory access</b>
-            <p>Manage student, staff, and administrator records.</p>
+            <p>Manage student, staff, and administrator permissions.</p>
           </div>
           <div class="sidebar-user" id="sidebar-user">
             <span class="avatar" id="sidebar-avatar">A</span>
@@ -85,7 +85,7 @@
             <button class="menu" id="menu" type="button" aria-label="Open navigation menu">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
-            <div class="crumb">Administration <b>/</b> <strong>People &amp; roles</strong></div>
+            <div class="crumb">Administration <b>/</b> <strong>User Management</strong></div>
           </div>
           <div class="top-right">
             <label class="search">
@@ -107,18 +107,18 @@
         <div class="content">
           <section class="page-title">
             <div>
-              <small>USER DIRECTORY</small>
-              <h1>People &amp; <em>roles.</em></h1>
-              <p>View student, staff, and administrator accounts connected to your BorrowBox workspace.</p>
+              <small>ADMINISTRATION · ACCESS CONTROL</small>
+              <h1>User Management</h1>
+              <p>Manage user accounts, roles and access permissions.</p>
             </div>
-            <button class="btn primary admin-only" id="toggle-user-form" type="button">+ Add a person</button>
+            <button class="btn primary admin-only" id="toggle-user-form" type="button">+ Add user</button>
           </section>
 
           <section class="panel hidden" id="user-form-panel" style="margin-bottom:20px">
             <div class="panel-head">
               <div>
                 <small>NEW ACCOUNT</small>
-                <h2>Add a person<span>.</span></h2>
+                <h2>Add a user<span>.</span></h2>
               </div>
               <button type="button" class="btn ghost icon-only" id="close-user-form" aria-label="Close user form">✕</button>
             </div>
@@ -137,25 +137,30 @@
                 </label>
               </div>
               <p id="user-message" role="status" aria-live="polite"></p>
-              <button class="btn primary" type="submit">Save person →</button>
+              <button class="btn primary" type="submit">Save user →</button>
             </form>
           </section>
 
-          <section class="stats compact">
+          <section class="stats four" aria-label="User role summary">
             <article class="stat blue">
-              <small>People registered</small>
+              <small>Total users</small>
               <strong id="users-total">—</strong>
-              <p>Total workspace accounts</p>
+              <p>Registered workspace accounts</p>
+            </article>
+            <article class="stat blue">
+              <small>Students</small>
+              <strong id="users-student">—</strong>
+              <p>Student role accounts</p>
+            </article>
+            <article class="stat mint">
+              <small>Staff</small>
+              <strong id="users-staff">—</strong>
+              <p>Staff role accounts</p>
             </article>
             <article class="stat violet">
               <small>Administrators</small>
               <strong id="users-admin">—</strong>
               <p>Admin role accounts</p>
-            </article>
-            <article class="stat mint">
-              <small>Students</small>
-              <strong id="users-student">—</strong>
-              <p>Student role accounts</p>
             </article>
           </section>
 
@@ -163,25 +168,85 @@
             <div class="panel-head">
               <div>
                 <small>DIRECTORY</small>
-                <h2>People directory<span>.</span></h2>
+                <h2>Registered users<span>.</span></h2>
               </div>
-              <input id="users-search" class="table-search" placeholder="Search name, email, or role…">
+              <span id="users-filtered-count" class="mono" style="font-size:12.5px;color:var(--text-secondary)">Loading…</span>
+            </div>
+
+            <div class="users-toolbar">
+              <div class="role-filter-group" role="group" aria-label="Filter users by role">
+                <button type="button" class="role-filter-btn active" data-role-filter="">All roles</button>
+                <button type="button" class="role-filter-btn" data-role-filter="Student">Student</button>
+                <button type="button" class="role-filter-btn" data-role-filter="Staff">Staff</button>
+                <button type="button" class="role-filter-btn" data-role-filter="Admin">Admin</button>
+              </div>
+              <div class="users-search-wrap">
+                <input id="users-search" class="table-search" placeholder="Search name, email, or user ID…" aria-label="Search users">
+                <button type="button" class="btn secondary sm hidden" id="users-clear-filters">Clear filters</button>
+              </div>
             </div>
 
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role / Assign role</th>
                     <th>User ID</th>
-                    <th>Admin action</th>
+                    <th>Full name</th>
+                    <th>Email address</th>
+                    <th>Current role</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="users-body">
                   <tr>
-                    <td colspan="5">Loading people…</td>
+                    <td><span class="skeleton-line" style="width:42px"></span></td>
+                    <td><span class="skeleton-line" style="width:140px"></span></td>
+                    <td><span class="skeleton-line" style="width:190px"></span></td>
+                    <td><span class="skeleton-line" style="width:76px"></span></td>
+                    <td><span class="skeleton-line" style="width:84px"></span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="skeleton-line" style="width:42px"></span></td>
+                    <td><span class="skeleton-line" style="width:160px"></span></td>
+                    <td><span class="skeleton-line" style="width:170px"></span></td>
+                    <td><span class="skeleton-line" style="width:76px"></span></td>
+                    <td><span class="skeleton-line" style="width:84px"></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-pagination hidden" id="users-pagination">
+              <span id="users-page-info">Showing 0–0 of 0</span>
+              <div class="pagination-controls">
+                <button type="button" class="btn secondary sm" id="users-prev-page">← Previous</button>
+                <button type="button" class="btn secondary sm" id="users-next-page">Next →</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel table-panel" style="margin-top:20px" aria-label="Role change audit history">
+            <div class="panel-head">
+              <div>
+                <small>AUDIT TRAIL</small>
+                <h2>Recent role changes<span>.</span></h2>
+              </div>
+              <button type="button" class="btn secondary sm" id="refresh-audit-btn">Refresh</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Transition</th>
+                    <th>Changed by</th>
+                    <th>Reason</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="users-audit-body">
+                  <tr>
+                    <td colspan="5">Loading audit trail…</td>
                   </tr>
                 </tbody>
               </table>
