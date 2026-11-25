@@ -91,7 +91,7 @@ function setup() {
 
   $$(".admin-only").forEach(el => el.classList.toggle("hidden", !admin()));
   if (!admin()) {
-    $$('a[href="users.html"], a[href="maintenance.html"]').forEach(link => link.classList.add("hidden"));
+    $$('a[href="users.html"], a[href="admin-access.html"]').forEach(link => link.classList.add("hidden"));
   }
 
   const topRight = $(".top-right");
@@ -256,7 +256,210 @@ async function loadUsers(){
     });
   }catch(e){body.innerHTML=`<tr><td colspan="5">Unable to load users: ${esc(e.message)}</td></tr>`}
 }
-async function loadMaintenance(){let body=$("#maintenance-body");if(!body)return;try{[repairs,equipment]=await Promise.all([api("/maintenance"),api("/equipment")]);repairs=Array.isArray(repairs)?repairs:[];equipment=Array.isArray(equipment)?equipment:[];let sel=$("#maintenance-equipment");equipment.forEach(x=>sel.add(new Option(x.name,id(x))));$("#maintenance-date").value=today();function render(){let q=($("#maintenance-search")?.value||"").toLowerCase(),s=$("#maintenance-status-filter")?.value||"",list=repairs.filter(x=>`${x.equipment_name} ${x.issue_description} ${x.status}`.toLowerCase().includes(q)&&(!s||x.status===s));$("#maintenance-pending").textContent=repairs.filter(x=>x.status==="Pending").length;$("#maintenance-progress").textContent=repairs.filter(x=>x.status==="In Progress").length;$("#maintenance-completed").textContent=repairs.filter(x=>x.status==="Completed").length;body.innerHTML=list.map(x=>`<tr><td><b>${esc(x.equipment_name||"Equipment #"+x.equipment_id)}</b></td><td>${esc(x.issue_description)}</td><td>${date(x.maintenance_date)}</td><td>${badge(x.status)}</td><td>${admin()&&x.status!=="Completed"?`<div class="maintenance-action" data-maintenance-action><button type="button" class="maintenance-update-trigger" aria-haspopup="true" aria-expanded="false" aria-label="Change status for ${esc(x.equipment_name||"equipment")}"><span>Change status</span><span class="maintenance-chevron" aria-hidden="true">⌄</span></button><div class="maintenance-update-menu" hidden role="group" aria-label="Choose maintenance status">${["Pending","In Progress","Completed"].filter(status=>status!==x.status).map(status=>`<button type="button" class="maintenance-option" data-repair="${esc(x.maintenance_id)}" data-status="${status}"><span class="maintenance-dot ${status.toLowerCase().replace(/ /g,"-")}"></span>${status}</button>`).join("")}</div></div>`:"—"}</td></tr>`).join("")||'<tr><td colspan="5">No maintenance issues found.</td></tr>';body.querySelectorAll("[data-maintenance-action]").forEach(action=>{const trigger=action.querySelector(".maintenance-update-trigger"),menu=action.querySelector(".maintenance-update-menu");trigger.addEventListener("click",()=>{const open=menu.hidden;body.querySelectorAll(".maintenance-update-menu").forEach(other=>{other.hidden=true;other.previousElementSibling?.setAttribute("aria-expanded","false")});menu.hidden=!open;if(open){const rect=trigger.getBoundingClientRect();const width=210;const left=Math.max(12,Math.min(rect.right-width,window.innerWidth-width-12));const below=window.innerHeight-rect.bottom>155;menu.style.left=`${left}px`;menu.style.top=below?`${rect.bottom+8}px`:"auto";menu.style.bottom=below?"auto":`${window.innerHeight-rect.top+8}px`;}trigger.setAttribute("aria-expanded",String(open))});menu.querySelectorAll("[data-repair]").forEach(button=>button.addEventListener("click",async()=>{if(button.disabled)return;const previous=trigger.innerHTML;trigger.disabled=true;trigger.textContent="Updating…";menu.hidden=true;try{await api(`/maintenance/${button.dataset.repair}/status`,{method:"PATCH",body:JSON.stringify({status:button.dataset.status})});toast("Maintenance status updated.");await loadMaintenance()}catch(e){toast(e.message,true);trigger.disabled=false;trigger.innerHTML=previous;trigger.setAttribute("aria-expanded","false")}}))})}$("#maintenance-search")?.addEventListener("input",render);$("#maintenance-status-filter")?.addEventListener("change",render);render();$("#toggle-maintenance-form")?.addEventListener("click",()=>$("#maintenance-form-panel").classList.toggle("hidden"));$("#close-maintenance-form")?.addEventListener("click",()=>$("#maintenance-form-panel").classList.add("hidden"));$("#maintenance-form")?.addEventListener("submit",async e=>{e.preventDefault();let m=$("#maintenance-message");try{await api("/maintenance",{method:"POST",body:JSON.stringify({equipment_id:Number(sel.value),issue_description:$("#maintenance-issue").value.trim(),maintenance_date:$("#maintenance-date").value})});m.textContent="Issue report saved.";m.className="success-text";e.target.reset();$("#maintenance-date").value=today();toast("Maintenance issue reported.");loadMaintenance()}catch(err){m.textContent=err.message;m.className="error-text"}})}catch(e){body.innerHTML=`<tr><td colspan="5">Unable to load maintenance records: ${esc(e.message)}</td></tr>`}}
+function defaultCareInstructions(item) {
+  if (item?.care_instructions) return item.care_instructions;
+  const cat = String(item?.category || "").toLowerCase();
+  if (cat.includes("photo") || cat.includes("camera")) {
+    return "Always attach lens caps when not shooting. Clean lenses only with a microfiber cloth and avoid dusty or wet environments.";
+  }
+  if (cat.includes("electron")) {
+    return "Keep away from liquids and extreme heat. Shut down properly before packing and report any screen, port, or battery issues.";
+  }
+  if (cat.includes("accessor")) {
+    return "Do not bend connectors or yank cables by the cord. Store adapters dry and report frayed wires right away.";
+  }
+  if (cat.includes("storage")) {
+    return "Always eject the drive safely before unplugging. Keep away from magnets, moisture, and drops.";
+  }
+  if (cat.includes("audio")) {
+    return "Keep volume levels safe, coil cables loosely, and store headphones and recorders in their protective cases.";
+  }
+  if (cat.includes("presentation")) {
+    return "Allow projector bulbs to cool before moving. Never look directly into laser pointers and wipe whiteboards clean.";
+  }
+  if (cat.includes("lab")) {
+    return "Inspect probes and power leads before use. Unplug heating tools after use, let hot parts cool, and follow lab safety rules.";
+  }
+  return "Handle with care, keep clean and dry, return all accessories, and report any damage promptly.";
+}
+
+async function loadMaintenance() {
+  const body = $("#maintenance-body");
+  if (!body) return;
+
+  const eyebrow = $("#maintenance-tracker-eyebrow");
+  const title = $("#maintenance-tracker-title");
+  if (eyebrow) eyebrow.textContent = admin() ? "REPAIR TRACKER" : "MY MAINTENANCE REQUESTS";
+  if (title) title.innerHTML = admin() ? "Reported issues<span>.</span>" : "My reported issues<span>.</span>";
+
+  try {
+    [repairs, equipment] = await Promise.all([api("/maintenance"), api("/equipment")]);
+    repairs = Array.isArray(repairs) ? repairs : [];
+    equipment = Array.isArray(equipment) ? equipment : [];
+
+    const sel = $("#maintenance-equipment");
+    if (sel) {
+      const previousSelection = sel.value;
+      sel.querySelectorAll("option:not(:first-child)").forEach(opt => opt.remove());
+      equipment.forEach(x => sel.add(new Option(x.name, id(x))));
+      if (previousSelection) sel.value = previousSelection;
+    }
+    const dateInput = $("#maintenance-date");
+    if (dateInput && !dateInput.value) dateInput.value = today();
+
+    const careBody = $("#care-guide-body");
+    const careCat = $("#care-category-filter");
+    const careSearch = $("#care-search");
+
+    if (careCat) {
+      const prevCat = careCat.value;
+      const cats = [...new Set(equipment.map(x => x.category).filter(Boolean))].sort();
+      careCat.querySelectorAll("option:not(:first-child)").forEach(opt => opt.remove());
+      cats.forEach(c => careCat.add(new Option(c, c)));
+      if (prevCat) careCat.value = prevCat;
+    }
+
+    function renderCareGuide() {
+      if (!careBody) return;
+      const q = (careSearch?.value || "").toLowerCase().trim();
+      const cat = careCat?.value || "";
+      const list = equipment.filter(x =>
+        `${x.name || ""} ${x.category || ""} ${defaultCareInstructions(x)}`.toLowerCase().includes(q) &&
+        (!cat || x.category === cat)
+      );
+      careBody.innerHTML = list.length
+        ? list.map(x => `<tr>
+            <td><b>${esc(x.name || "Equipment")}</b><small>ID #${esc(id(x))}</small></td>
+            <td>${badge(x.category || "General")}</td>
+            <td>${esc(defaultCareInstructions(x))}</td>
+            <td><span class="${qty(x) > 0 ? "available" : "unavailable"}">● ${qty(x)} available</span></td>
+            <td><button type="button" class="table-action" data-report-equipment="${esc(id(x))}">Report issue ↗</button></td>
+          </tr>`).join("")
+        : '<tr><td colspan="5">No equipment matches that filter.</td></tr>';
+
+      careBody.querySelectorAll("[data-report-equipment]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const panel = $("#maintenance-form-panel");
+          if (panel) panel.classList.remove("hidden");
+          if (sel) sel.value = btn.dataset.reportEquipment;
+          if (dateInput && !dateInput.value) dateInput.value = today();
+          panel?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          $("#maintenance-issue")?.focus();
+        });
+      });
+    }
+
+    function render() {
+      const q = ($("#maintenance-search")?.value || "").toLowerCase();
+      const s = $("#maintenance-status-filter")?.value || "";
+      const list = repairs.filter(x =>
+        `${x.equipment_name || ""} ${x.issue_description || ""} ${x.reported_by || ""} ${x.status || ""}`.toLowerCase().includes(q) &&
+        (!s || x.status === s)
+      );
+      $("#maintenance-pending").textContent = repairs.filter(x => x.status === "Pending").length;
+      $("#maintenance-progress").textContent = repairs.filter(x => x.status === "In Progress").length;
+      $("#maintenance-completed").textContent = repairs.filter(x => x.status === "Completed").length;
+
+      const colCount = admin() ? 6 : 4;
+      body.innerHTML = list.map(x => `<tr>
+        <td><b>${esc(x.equipment_name || "Equipment #" + x.equipment_id)}</b></td>
+        <td>${esc(x.issue_description)}</td>
+        ${admin() ? `<td>${esc(x.reported_by || (x.user_id ? "User #" + x.user_id : "Legacy record"))}</td>` : ""}
+        <td>${date(x.maintenance_date)}</td>
+        <td>${badge(x.status)}</td>
+        ${admin() ? `<td>${x.status !== "Completed" ? `<div class="maintenance-action" data-maintenance-action><button type="button" class="maintenance-update-trigger" aria-haspopup="true" aria-expanded="false" aria-label="Change status for ${esc(x.equipment_name || "equipment")}"><span>Change status</span><span class="maintenance-chevron" aria-hidden="true">⌄</span></button><div class="maintenance-update-menu" hidden role="group" aria-label="Choose maintenance status">${["Pending", "In Progress", "Completed"].filter(status => status !== x.status).map(status => `<button type="button" class="maintenance-option" data-repair="${esc(x.maintenance_id)}" data-status="${status}"><span class="maintenance-dot ${status.toLowerCase().replace(/ /g, "-")}"></span>${status}</button>`).join("")}</div></div>` : "—"}</td>` : ""}
+      </tr>`).join("") || `<tr><td colspan="${colCount}">${admin() ? "No maintenance issues found." : "You have not submitted any maintenance requests yet."}</td></tr>`;
+
+      body.querySelectorAll("[data-maintenance-action]").forEach(action => {
+        const trigger = action.querySelector(".maintenance-update-trigger");
+        const menu = action.querySelector(".maintenance-update-menu");
+        trigger.addEventListener("click", () => {
+          const open = menu.hidden;
+          body.querySelectorAll(".maintenance-update-menu").forEach(other => {
+            other.hidden = true;
+            other.previousElementSibling?.setAttribute("aria-expanded", "false");
+          });
+          menu.hidden = !open;
+          if (open) {
+            const rect = trigger.getBoundingClientRect();
+            const width = 210;
+            const left = Math.max(12, Math.min(rect.right - width, window.innerWidth - width - 12));
+            const below = window.innerHeight - rect.bottom > 155;
+            menu.style.left = `${left}px`;
+            menu.style.top = below ? `${rect.bottom + 8}px` : "auto";
+            menu.style.bottom = below ? "auto" : `${window.innerHeight - rect.top + 8}px`;
+          }
+          trigger.setAttribute("aria-expanded", String(open));
+        });
+        menu.querySelectorAll("[data-repair]").forEach(button => button.addEventListener("click", async () => {
+          if (button.disabled) return;
+          const previous = trigger.innerHTML;
+          trigger.disabled = true;
+          trigger.textContent = "Updating…";
+          menu.hidden = true;
+          try {
+            await api(`/maintenance/${button.dataset.repair}/status`, {
+              method: "PATCH",
+              body: JSON.stringify({ status: button.dataset.status })
+            });
+            toast("Maintenance status updated.");
+            await loadMaintenance();
+          } catch (e) {
+            toast(e.message, true);
+            trigger.disabled = false;
+            trigger.innerHTML = previous;
+            trigger.setAttribute("aria-expanded", "false");
+          }
+        }));
+      });
+    }
+
+    renderCareGuide();
+    render();
+
+    if (!body.dataset.bound) {
+      body.dataset.bound = "1";
+      careSearch?.addEventListener("input", renderCareGuide);
+      careCat?.addEventListener("change", renderCareGuide);
+      $("#maintenance-search")?.addEventListener("input", render);
+      $("#maintenance-status-filter")?.addEventListener("change", render);
+      $("#toggle-maintenance-form")?.addEventListener("click", () => $("#maintenance-form-panel").classList.toggle("hidden"));
+      $("#close-maintenance-form")?.addEventListener("click", () => $("#maintenance-form-panel").classList.add("hidden"));
+      $("#maintenance-form")?.addEventListener("submit", async e => {
+        e.preventDefault();
+        const m = $("#maintenance-message");
+        const equipmentId = Number(sel.value);
+        const issueDescription = $("#maintenance-issue").value.trim();
+        if (!Number.isInteger(equipmentId) || equipmentId < 1 || !issueDescription) {
+          m.textContent = "Please choose equipment and describe the issue.";
+          m.className = "error-text";
+          return;
+        }
+        try {
+          await api("/maintenance", {
+            method: "POST",
+            body: JSON.stringify({
+              equipment_id: equipmentId,
+              issue_description: issueDescription,
+              maintenance_date: $("#maintenance-date").value
+            })
+          });
+          m.textContent = "Issue report saved.";
+          m.className = "success-text";
+          e.target.reset();
+          $("#maintenance-date").value = today();
+          toast("Maintenance issue reported.");
+          await loadMaintenance();
+        } catch (err) {
+          m.textContent = err.message;
+          m.className = "error-text";
+        }
+      });
+    }
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="${admin() ? 6 : 4}">Unable to load maintenance records: ${esc(e.message)}</td></tr>`;
+  }
+}
 document.addEventListener("DOMContentLoaded", () => {
   if (!currentUser || !token()) {
     location.replace("login.html");
@@ -264,7 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Students must not open administrator-only pages.
-  const adminPage = ["users.html", "maintenance.html"].some(page => location.pathname.endsWith(page));
+  const adminPage = ["users.html", "admin-access.html"].some(page => location.pathname.endsWith(page));
   if (adminPage && !admin()) {
     location.replace("index.html");
     return;

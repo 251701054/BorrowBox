@@ -173,3 +173,4 @@
 .gear-art .gear-photo-fallback[hidden] { display:none !important; }
 .gear-fallback-symbol { font-size:clamp(42px,5vw,64px);font-weight:500;color:#bdd8ff;line-height:1; }
 .gear-fallback-caption { font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8eaed6; }
+.table-panel + .table-panel { margin-top:20px; }

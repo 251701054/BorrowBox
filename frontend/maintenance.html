@@ -24,9 +24,9 @@
           <a href="borrow.html">▦ <span>Borrow equipment</span></a>
           <a href="history.html">◷ <span>Borrowings</span></a>
           <a href="reservations.html">▤ <span>Reservations</span></a>
-          <p class="nav-label manage-label">MANAGE</p>
+          <a class="active" href="maintenance.html">⚒ <span>Care & maintenance</span></a>
+          <p class="nav-label manage-label admin-only">MANAGE</p>
           <a class="admin-only" href="users.html">♙ <span>People & roles</span></a>
-          <a class="admin-only" class="active" href="maintenance.html">⚒ <span>Care & maintenance</span></a>
           <a class="admin-only" href="admin-access.html">♜ <span>Admin access</span></a>
         </nav>
         <div class="side-promo">
@@ -39,13 +39,14 @@
       <main>
         <header class="topbar">
           <button class="menu" id="menu">☰</button>
-          <div class="crumb">Manage <b>/</b> <strong>Care & maintenance</strong></div>
+          <div class="crumb">Workspace <b>/</b> <strong>Care &amp; maintenance</strong></div>
           <div class="top-right">
             <label class="role">
-              <span class="avatar">A</span>
+              <span class="avatar">S</span>
               <select id="role-switcher">
-                <option>Admin</option>
                 <option>Student</option>
+                <option>Staff</option>
+                <option>Admin</option>
               </select>
             </label>
           </div>
@@ -103,11 +104,45 @@
             </article>
           </section>
 
+          <section class="panel table-panel" id="care-guide-panel">
+            <div class="panel-head">
+              <div>
+                <small>CARE &amp; HANDLING GUIDE</small>
+                <h2>Equipment care instructions<span>.</span></h2>
+              </div>
+              <div class="inline-filters">
+                <select id="care-category-filter">
+                  <option value="">All categories</option>
+                </select>
+                <input id="care-search" class="table-search" placeholder="Search equipment care…">
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Equipment</th>
+                    <th>Category</th>
+                    <th>Care instructions</th>
+                    <th>Availability</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="care-guide-body">
+                  <tr>
+                    <td colspan="5">Loading care instructions…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
           <section class="panel table-panel">
             <div class="panel-head">
               <div>
-                <small>REPAIR TRACKER</small>
-                <h2>Reported issues<span>.</span></h2>
+                <small id="maintenance-tracker-eyebrow">REPAIR TRACKER</small>
+                <h2 id="maintenance-tracker-title">Reported issues<span>.</span></h2>
               </div>
               <div class="inline-filters">
                 <select id="maintenance-status-filter">
@@ -126,14 +161,15 @@
                   <tr>
                     <th>Equipment</th>
                     <th>Issue</th>
+                    <th class="admin-only">Reported by</th>
                     <th>Reported on</th>
                     <th>Status</th>
-                    <th>Update status</th>
+                    <th class="admin-only">Update status</th>
                   </tr>
                 </thead>
                 <tbody id="maintenance-body">
                   <tr>
-                    <td colspan="5">Loading maintenance records…</td>
+                    <td colspan="6">Loading maintenance records…</td>
                   </tr>
                 </tbody>
               </table>
