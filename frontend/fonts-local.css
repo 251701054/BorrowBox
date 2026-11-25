@@ -1,0 +1,30 @@
+/* Local Development Only — TypeType Trial Fonts (excluded from Git & public deployment) */
+
+@font-face {
+  font-family: 'TT Fors';
+  src: url('./fonts/TT Fors Trial Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TT Fors';
+  src: url('./fonts/TT Fors Trial Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TT Fors';
+  src: url('./fonts/TT Fors Trial DemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-body: var(--font-body-dev);
+  --font-sans: var(--font-body-dev);
+}

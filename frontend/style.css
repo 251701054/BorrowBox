@@ -78,10 +78,7 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
   --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
 
-  /* Fonts */
-  --font-body: 'TT Fors', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-sans: var(--font-body);
-  --font-heading: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Fonts (inherited from fonts.css / fonts-local.css) */
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 

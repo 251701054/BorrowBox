@@ -1,4 +1,4 @@
-/* BorrowBox Centralized Local Typography */
+/* BorrowBox Centralized Typography Tokens & Production Font Faces */
 
 @font-face {
   font-family: 'Inter';
@@ -16,33 +16,12 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: 'TT Fors';
-  src: url('./fonts/TT Fors Trial Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'TT Fors';
-  src: url('./fonts/TT Fors Trial Medium.ttf') format('truetype');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'TT Fors';
-  src: url('./fonts/TT Fors Trial DemiBold.ttf') format('truetype');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   --font-heading: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-body: 'TT Fors', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body-dev: 'TT Fors', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body-prod: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Default to production-safe Manrope; fonts-local.css switches to TT Fors on localhost */
+  --font-body: var(--font-body-prod);
   --font-sans: var(--font-body);
   --weight-heading: 800;
   --weight-regular: 400;

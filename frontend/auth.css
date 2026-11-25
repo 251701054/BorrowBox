@@ -23,9 +23,6 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  --font-body: 'TT Fors', system-ui, -apple-system, sans-serif;
-  --font-sans: var(--font-body);
-  --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 *,
