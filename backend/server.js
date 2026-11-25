@@ -180,13 +180,47 @@ app.use("/api/borrowings/:id/return", (req, res, next) => req.method === "PATCH"
 app.use("/api/reservations/:id/status", (req, res, next) => req.method === "PATCH" ? requireAdmin(req, res, next) : next());
 
 // Equipment
+async function ensureColumn(sql) {
+  try {
+    await pool.query(sql);
+  } catch (error) {
+    if (!["ER_DUP_FIELDNAME", "ER_DUP_KEYNAME", "ER_FK_DUP_NAME"].includes(error.code)) {
+      console.warn("Schema check note:", error.code || error.message);
+    }
+  }
+}
+
+let schemaReadyPromise = null;
+function ensureCareMaintenanceSchema() {
+  if (!schemaReadyPromise) {
+    schemaReadyPromise = Promise.all([
+      ensureColumn("ALTER TABLE equipment ADD COLUMN care_instructions text DEFAULT NULL AFTER description"),
+      ensureColumn("ALTER TABLE maintenance ADD COLUMN user_id int DEFAULT NULL AFTER equipment_id"),
+    ]).then(() =>
+      ensureColumn("ALTER TABLE maintenance ADD CONSTRAINT maintenance_ibfk_2 FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE SET NULL")
+    );
+  }
+  return schemaReadyPromise;
+}
+
 app.get("/api/equipment", async (req, res) => {
+  await ensureCareMaintenanceSchema();
   try {
     const [rows] = await pool.query(
       "SELECT equipment_id, name, category, description, care_instructions, available_quantity FROM equipment ORDER BY equipment_id DESC"
     );
     res.json(rows);
   } catch (error) {
+    if (error.code === "ER_BAD_FIELD_ERROR") {
+      try {
+        const [rows] = await pool.query(
+          "SELECT equipment_id, name, category, description, available_quantity FROM equipment ORDER BY equipment_id DESC"
+        );
+        return res.json(rows);
+      } catch (fallbackError) {
+        console.error("Equipment fallback load error:", fallbackError.message);
+      }
+    }
     res.status(500).json({ error: "Could not load equipment" });
   }
 });
@@ -200,6 +234,7 @@ app.post("/api/equipment", async (req, res) => {
   }
 
   try {
+    await ensureCareMaintenanceSchema();
     const [result] = await pool.execute(
       "INSERT INTO equipment (name, category, description, care_instructions, available_quantity) VALUES (?, ?, ?, ?, ?)",
       [name.trim(), category.trim(), description, care_instructions ? String(care_instructions).trim() : null, quantity]
@@ -219,6 +254,7 @@ app.put("/api/equipment/:id", async (req, res) => {
   }
 
   try {
+    await ensureCareMaintenanceSchema();
     const [result] = await pool.execute(
       "UPDATE equipment SET name = ?, category = ?, description = ?, care_instructions = ?, available_quantity = ? WHERE equipment_id = ?",
       [name.trim(), category.trim(), description, care_instructions ? String(care_instructions).trim() : null, quantity, req.params.id]
@@ -232,6 +268,7 @@ app.put("/api/equipment/:id", async (req, res) => {
 
 app.delete("/api/equipment/:id", async (req, res) => {
   try {
+    await ensureCareMaintenanceSchema();
     const [result] = await pool.execute("DELETE FROM equipment WHERE equipment_id = ?", [req.params.id]);
     if (!result.affectedRows) return res.status(404).json({ error: "Equipment not found" });
     res.json({ message: "Equipment deleted" });
@@ -259,6 +296,7 @@ app.post("/api/users", async (req, res) => {
   }
 
   try {
+    await ensureCareMaintenanceSchema();
     const [result] = await pool.execute(
       "INSERT INTO users (full_name, email, role) VALUES (?, ?, ?)",
       [full_name.trim(), email.trim(), role]
@@ -406,6 +444,7 @@ app.post("/api/reservations", async (req, res) => {
     return res.status(400).json({ error: "Valid equipment_id and reservation_date (YYYY-MM-DD) are required" });
   }
   try {
+    await ensureCareMaintenanceSchema();
     const [result] = await pool.execute(
       "INSERT INTO reservations (user_id, equipment_id, reservation_date, status) VALUES (?, ?, ?, 'Pending')",
       [req.user.user_id, equipmentId, reservationDate]
@@ -424,6 +463,7 @@ app.patch("/api/reservations/:id/status", async (req, res) => {
     return res.status(400).json({ error: "status must be Pending, Approved, or Cancelled" });
   }
   try {
+    await ensureCareMaintenanceSchema();
     const [result] = await pool.execute(
       "UPDATE reservations SET status = ? WHERE reservation_id = ?",
       [status, req.params.id]
@@ -437,6 +477,7 @@ app.patch("/api/reservations/:id/status", async (req, res) => {
 
 // Maintenance
 app.get("/api/maintenance", async (req, res) => {
+  await ensureCareMaintenanceSchema();
   try {
     const isAdmin = req.user.role === "Admin";
     const sql = `
@@ -477,6 +518,7 @@ app.post("/api/maintenance", async (req, res) => {
   }
 
   try {
+    await ensureCareMaintenanceSchema();
     const [result] = await pool.execute(
       "INSERT INTO maintenance (equipment_id, user_id, issue_description, maintenance_date, status) VALUES (?, ?, ?, ?, 'Pending')",
       [equipmentId, req.user.user_id, issueDescription, maintenanceDate]
@@ -504,6 +546,7 @@ app.patch("/api/maintenance/:id/status", async (req, res) => {
     return res.status(400).json({ error: "Invalid maintenance status" });
   }
   try {
+    await ensureCareMaintenanceSchema();
     const [result] = await pool.execute(
       "UPDATE maintenance SET status = ? WHERE maintenance_id = ?",
       [status, maintenanceId]
