@@ -49,12 +49,15 @@ body {
 button,
 input,
 select {
-  font: inherit;
+  font-family: var(--font-body);
+  font-size: inherit;
+  line-height: inherit;
   color: inherit;
 }
 
 button {
   cursor: pointer;
+  font-weight: var(--weight-semibold, 600);
 }
 
 :focus-visible {
