@@ -173,7 +173,9 @@ app.use("/api/equipment", (req, res, next) =>
   ["POST", "PUT", "DELETE"].includes(req.method) ? requireAdmin(req, res, next) : next()
 );
 app.use("/api/users", requireAdmin);
-app.use("/api/maintenance", requireAdmin);
+app.use("/api/maintenance", (req, res, next) =>
+  ["PATCH", "PUT", "DELETE"].includes(req.method) ? requireAdmin(req, res, next) : next()
+);
 app.use("/api/borrowings/:id/return", (req, res, next) => req.method === "PATCH" ? requireAdmin(req, res, next) : next());
 app.use("/api/reservations/:id/status", (req, res, next) => req.method === "PATCH" ? requireAdmin(req, res, next) : next());
 
@@ -181,7 +183,7 @@ app.use("/api/reservations/:id/status", (req, res, next) => req.method === "PATC
 app.get("/api/equipment", async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT equipment_id, name, category, description, available_quantity FROM equipment ORDER BY equipment_id DESC"
+      "SELECT equipment_id, name, category, description, care_instructions, available_quantity FROM equipment ORDER BY equipment_id DESC"
     );
     res.json(rows);
   } catch (error) {
@@ -190,7 +192,7 @@ app.get("/api/equipment", async (req, res) => {
 });
 
 app.post("/api/equipment", async (req, res) => {
-  const { name, category, description = "", available_quantity = 1 } = req.body;
+  const { name, category, description = "", care_instructions = null, available_quantity = 1 } = req.body;
   const quantity = Number(available_quantity);
 
   if (!name || !category || !Number.isInteger(quantity) || quantity < 0) {
@@ -199,8 +201,8 @@ app.post("/api/equipment", async (req, res) => {
 
   try {
     const [result] = await pool.execute(
-      "INSERT INTO equipment (name, category, description, available_quantity) VALUES (?, ?, ?, ?)",
-      [name.trim(), category.trim(), description, quantity]
+      "INSERT INTO equipment (name, category, description, care_instructions, available_quantity) VALUES (?, ?, ?, ?, ?)",
+      [name.trim(), category.trim(), description, care_instructions ? String(care_instructions).trim() : null, quantity]
     );
     res.status(201).json({ message: "Equipment added", equipment_id: result.insertId });
   } catch (error) {
@@ -209,7 +211,7 @@ app.post("/api/equipment", async (req, res) => {
 });
 
 app.put("/api/equipment/:id", async (req, res) => {
-  const { name, category, description = "", available_quantity } = req.body;
+  const { name, category, description = "", care_instructions = null, available_quantity } = req.body;
   const quantity = Number(available_quantity);
 
   if (!name || !category || !Number.isInteger(quantity) || quantity < 0) {
@@ -218,8 +220,8 @@ app.put("/api/equipment/:id", async (req, res) => {
 
   try {
     const [result] = await pool.execute(
-      "UPDATE equipment SET name = ?, category = ?, description = ?, available_quantity = ? WHERE equipment_id = ?",
-      [name.trim(), category.trim(), description, quantity, req.params.id]
+      "UPDATE equipment SET name = ?, category = ?, description = ?, care_instructions = ?, available_quantity = ? WHERE equipment_id = ?",
+      [name.trim(), category.trim(), description, care_instructions ? String(care_instructions).trim() : null, quantity, req.params.id]
     );
     if (!result.affectedRows) return res.status(404).json({ error: "Equipment not found" });
     res.json({ message: "Equipment updated" });
@@ -436,45 +438,75 @@ app.patch("/api/reservations/:id/status", async (req, res) => {
 // Maintenance
 app.get("/api/maintenance", async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT m.maintenance_id, e.name AS equipment_name,
+    const isAdmin = req.user.role === "Admin";
+    const sql = `
+      SELECT m.maintenance_id, m.equipment_id, m.user_id,
+             u.full_name AS reported_by,
+             e.name AS equipment_name, e.category AS equipment_category,
+             e.care_instructions,
              m.issue_description, m.maintenance_date, m.status
       FROM maintenance m
       JOIN equipment e ON m.equipment_id = e.equipment_id
+      LEFT JOIN users u ON m.user_id = u.user_id
+      ${isAdmin ? "" : "WHERE m.user_id = ?"}
       ORDER BY m.maintenance_id DESC
-    `);
+    `;
+    const [rows] = isAdmin
+      ? await pool.query(sql)
+      : await pool.execute(sql, [req.user.user_id]);
     res.json(rows);
   } catch (error) {
+    console.error("Maintenance list error:", error.message);
     res.status(500).json({ error: "Could not load maintenance records" });
   }
 });
 
 app.post("/api/maintenance", async (req, res) => {
-  const { equipment_id, issue_description, maintenance_date } = req.body;
-  if (!Number.isInteger(Number(equipment_id)) || !issue_description) {
-    return res.status(400).json({ error: "equipment_id and issue_description are required" });
+  const equipmentId = Number(req.body.equipment_id);
+  const issueDescription = String(req.body.issue_description || "").trim();
+  const maintenanceDate = String(req.body.maintenance_date || new Date().toISOString().slice(0, 10)).trim();
+
+  if (!Number.isInteger(equipmentId) || equipmentId < 1 || !issueDescription) {
+    return res.status(400).json({ error: "Valid equipment_id and issue_description are required" });
   }
+  if (issueDescription.length > 255) {
+    return res.status(400).json({ error: "issue_description must be 255 characters or fewer" });
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(maintenanceDate)) {
+    return res.status(400).json({ error: "maintenance_date must be in YYYY-MM-DD format" });
+  }
+
   try {
     const [result] = await pool.execute(
-      "INSERT INTO maintenance (equipment_id, issue_description, maintenance_date, status) VALUES (?, ?, ?, 'Pending')",
-      [Number(equipment_id), issue_description.trim(), maintenance_date || new Date().toISOString().slice(0, 10)]
+      "INSERT INTO maintenance (equipment_id, user_id, issue_description, maintenance_date, status) VALUES (?, ?, ?, ?, 'Pending')",
+      [equipmentId, req.user.user_id, issueDescription, maintenanceDate]
     );
-    res.status(201).json({ message: "Maintenance record created", maintenance_id: result.insertId });
+    res.status(201).json({
+      message: "Maintenance record created",
+      maintenance_id: result.insertId,
+      user_id: req.user.user_id,
+      status: "Pending"
+    });
   } catch (error) {
     if (error.code === "ER_NO_REFERENCED_ROW_2") return res.status(400).json({ error: "Equipment ID does not exist" });
+    console.error("Create maintenance error:", error.message);
     res.status(500).json({ error: "Could not create maintenance record" });
   }
 });
 
 app.patch("/api/maintenance/:id/status", async (req, res) => {
+  const maintenanceId = Number(req.params.id);
   const { status } = req.body;
+  if (!Number.isInteger(maintenanceId) || maintenanceId < 1) {
+    return res.status(400).json({ error: "Invalid maintenance ID" });
+  }
   if (!["Pending", "In Progress", "Completed"].includes(status)) {
     return res.status(400).json({ error: "Invalid maintenance status" });
   }
   try {
     const [result] = await pool.execute(
       "UPDATE maintenance SET status = ? WHERE maintenance_id = ?",
-      [status, req.params.id]
+      [status, maintenanceId]
     );
     if (!result.affectedRows) return res.status(404).json({ error: "Maintenance record not found" });
     res.json({ message: "Maintenance status updated" });
@@ -506,6 +538,10 @@ app.get("/api/dashboard", async (req, res) => {
 });
 
 const port = Number(process.env.PORT || 3000);
-app.listen(port, () => {
-  console.log(`BorrowBox API running at http://localhost:${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`BorrowBox API running at http://localhost:${port}`);
+  });
+}
+
+module.exports = app;
