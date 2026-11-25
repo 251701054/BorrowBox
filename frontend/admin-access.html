@@ -1,129 +1,203 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Admin Access · BorrowBox</title>
-		<link rel="icon" type="image/png" href="favicon.png?v=2">
-		<link rel="stylesheet" href="style.css?v=admin-cards-20261027">
-	</head>
-	<body>
-		<div class="shell">
-			<aside class="sidebar" id="sidebar">
-				<a class="brand" href="index.html">
-					<b class="logo">⬡</b>
-					<span>
-						<strong>Borrow<span>Box</span></strong>
-						<small>Smart equipment lending</small>
-					</span>
-				</a>
-				<p class="nav-label">WORKSPACE</p>
-				<nav>
-					<a href="index.html">⌂ <span>Dashboard</span></a>
-					<a href="equipment.html">⌕ <span>Available equipment</span></a>
-					<a href="borrow.html">▦ <span>Borrow equipment</span></a>
-					<a href="history.html">◷ <span>Borrowings</span></a>
-					<a href="reservations.html">▤ <span>Reservations</span></a>
-					<a href="maintenance.html">⚒ <span>Care & maintenance</span></a>
-					<p class="nav-label manage-label admin-only">MANAGE</p>
-					<a class="admin-only" href="users.html">♙ <span>People & roles</span></a>
-					<a class="active admin-only" href="admin-access.html">♜ <span>Admin access</span></a>
-				</nav>
-				<div class="side-promo">
-					<b>✳ Administrator workspace.</b>
-					<p>Manage people, permissions, and operational tools from one place.</p>
-				</div>
-				<small class="connection"><i></i> Connected workspace · v1.0</small>
-			</aside>
-			<main>
-				<header class="topbar">
-					<button class="menu" id="menu">☰</button>
-					<div class="crumb">Manage <b>/</b> <strong>Admin access</strong></div>
-					<div class="top-right">
-						<label class="role"><span class="avatar">A</span><span id="signed-in-name">Administrator</span></label>
-					</div>
-				</header>
-				<div class="content">
-					<section class="page-heading">
-						<div>
-							<small class="eyebrow">CONTROL CENTRE</small>
-							<h1>Admin <em>access.</em></h1>
-							<p>Manage roles and open the tools available to workspace administrators.</p>
-						</div>
-					</section>
-					<div id="admin-access-warning" class="notice" role="status">
-						<strong>Administrator access verified</strong>
-						<p>Your signed-in account has administrator access. The server verifies your session before allowing access to this page.</p>
-					</div>
-					<section class="stats admin-access-stats">
-						<article class="stat blue">
-							<small>♙ &nbsp; People & roles</small>
-							<strong>01</strong>
-							<p>Review user roles and access</p>
-							<a class="link" href="users.html">Open people & roles →</a>
-						</article>
-						<article class="stat mint">
-							<small>▣ &nbsp; Equipment</small>
-							<strong>02</strong>
-							<p>Review equipment records</p>
-							<a class="link" href="equipment.html">Open equipment →</a>
-						</article>
-						<article class="stat purple">
-							<small>⚒ &nbsp; Maintenance</small>
-							<strong>03</strong>
-							<p>Manage repair and maintenance</p>
-							<a class="link" href="maintenance.html">Open maintenance →</a>
-						</article>
-					</section>
-					<section class="panel admin-access-panel">
-						<div class="panel-head">
-							<div>
-								<small class="eyebrow">ADMINISTRATION</small>
-								<h2>Access management</h2>
-								<p>Use these shortcuts to manage the workspace.</p>
-							</div>
-						</div>
-						<div class="access-list" aria-label="Administration shortcuts">
-							<a class="access-item" href="users.html">
-								<span class="access-icon">♙</span>
-								<span class="access-copy">
-									<b>Assign roles and manage users</b>
-									<small>Review accounts and role assignments.</small>
-								</span>
-								<span class="access-arrow">↗</span>
-							</a>
-							<a class="access-item" href="equipment.html">
-								<span class="access-icon">▣</span>
-								<span class="access-copy">
-									<b>Equipment administration</b>
-									<small>Review the equipment catalogue.</small>
-								</span>
-								<span class="access-arrow">↗</span>
-							</a>
-							<a class="access-item" href="maintenance.html">
-								<span class="access-icon">⚒</span>
-								<span class="access-copy">
-									<b>Maintenance administration</b>
-									<small>Review equipment care and repair records.</small>
-								</span>
-								<span class="access-arrow">↗</span>
-							</a>
-							<a class="access-item" href="reservations.html">
-								<span class="access-icon">▤</span>
-								<span class="access-copy">
-									<b>Reservation oversight</b>
-									<small>Review equipment reservation activity.</small>
-								</span>
-								<span class="access-arrow">↗</span>
-							</a>
-						</div>
-					</section>
-					<p class="access-footnote">Security note: hiding admin controls in the interface is not access control. Every privileged API endpoint must verify the authenticated user's role on the server.</p>
-				</div>
-			</main>
-		</div>
-		<div id="toast-region"></div>
-		<script src="config.js"></script><script src="app.js"></script>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Admin Access · BorrowBox</title>
+    <link rel="icon" type="image/png" href="favicon.png?v=2">
+    <link rel="stylesheet" href="style.css?v=dark-2026">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <div class="sidebar-header">
+          <a class="brand" href="index.html">
+            <b class="logo" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </b>
+            <span class="brand-text">
+              <strong>Borrow<span>Box</span></strong>
+              <small>Smart equipment lending</small>
+            </span>
+          </a>
+          <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Collapse sidebar" title="Toggle sidebar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+          </button>
+        </div>
 
-	</body>
+        <p class="nav-label">Workspace</p>
+        <nav>
+          <a href="index.html" title="Dashboard">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="equipment.html" title="Available equipment">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            <span>Equipment</span>
+          </a>
+          <a href="borrow.html" title="Borrow equipment">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            <span>Borrow</span>
+          </a>
+          <a href="history.html" title="Borrowings">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Borrowings</span>
+          </a>
+          <a href="reservations.html" title="Reservations">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            <span>Reservations</span>
+          </a>
+          <a href="maintenance.html" title="Care &amp; maintenance">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            <span>Care &amp; maintenance</span>
+          </a>
+
+          <p class="nav-label manage-label admin-only">Administration</p>
+          <a class="admin-only" href="users.html" title="People &amp; roles">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>People &amp; roles</span>
+          </a>
+          <a class="active admin-only" href="admin-access.html" title="Admin access">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Admin access</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="side-promo">
+            <b>Administrator workspace</b>
+            <p>Manage people, permissions, and operational tools from one place.</p>
+          </div>
+          <div class="sidebar-user" id="sidebar-user">
+            <span class="avatar" id="sidebar-avatar">A</span>
+            <div class="sidebar-user-meta">
+              <span class="sidebar-user-name" id="sidebar-user-name">Administrator</span>
+              <span class="sidebar-user-role" id="sidebar-user-role">Admin</span>
+            </div>
+          </div>
+          <small class="connection"><i></i> <span>Connected workspace</span></small>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu" id="menu" type="button" aria-label="Open navigation menu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+            <div class="crumb">Administration <b>/</b> <strong>Admin access</strong></div>
+          </div>
+          <div class="top-right">
+            <label class="search">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input id="global-search" placeholder="Search equipment…">
+              <kbd>/</kbd>
+            </label>
+            <label class="role" title="Signed-in role">
+              <span class="avatar">A</span>
+              <span id="signed-in-name" style="font-size:13px;font-weight:500;padding-right:4px">Administrator</span>
+            </label>
+          </div>
+        </header>
+
+        <div class="content">
+          <section class="page-heading">
+            <div>
+              <small class="eyebrow">CONTROL CENTRE</small>
+              <h1>Admin <em>access.</em></h1>
+              <p>Manage roles, inventory oversight, reservations, and maintenance workflows.</p>
+            </div>
+          </section>
+
+          <div id="admin-access-warning" class="notice" role="status">
+            <strong>Administrator access verified</strong>
+            <p>Your signed-in account has administrator access. The server verifies your JWT and database role on every privileged request.</p>
+          </div>
+
+          <section class="stats admin-access-stats">
+            <article class="stat blue">
+              <small>People &amp; roles</small>
+              <strong>01</strong>
+              <p>Review user accounts and role assignments</p>
+              <a class="link" href="users.html">Open people &amp; roles →</a>
+            </article>
+            <article class="stat mint">
+              <small>Equipment</small>
+              <strong>02</strong>
+              <p>Review campus equipment inventory</p>
+              <a class="link" href="equipment.html">Open equipment →</a>
+            </article>
+            <article class="stat violet">
+              <small>Maintenance</small>
+              <strong>03</strong>
+              <p>Manage repair tickets and statuses</p>
+              <a class="link" href="maintenance.html">Open maintenance →</a>
+            </article>
+          </section>
+
+          <section class="panel admin-access-panel">
+            <div class="panel-head">
+              <div>
+                <small class="eyebrow">ADMINISTRATION</small>
+                <h2>Management shortcuts<span>.</span></h2>
+              </div>
+            </div>
+            <div class="access-list" aria-label="Administration shortcuts">
+              <a class="access-item" href="users.html">
+                <span class="access-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </span>
+                <span class="access-copy">
+                  <b>Assign roles and manage users</b>
+                  <small>Review accounts and role assignments.</small>
+                </span>
+                <span class="access-arrow">↗</span>
+              </a>
+              <a class="access-item" href="equipment.html">
+                <span class="access-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+                </span>
+                <span class="access-copy">
+                  <b>Equipment administration</b>
+                  <small>Review the campus equipment catalogue.</small>
+                </span>
+                <span class="access-arrow">↗</span>
+              </a>
+              <a class="access-item" href="maintenance.html">
+                <span class="access-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                </span>
+                <span class="access-copy">
+                  <b>Maintenance administration</b>
+                  <small>Update equipment care and repair statuses.</small>
+                </span>
+                <span class="access-arrow">↗</span>
+              </a>
+              <a class="access-item" href="reservations.html">
+                <span class="access-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                </span>
+                <span class="access-copy">
+                  <b>Reservation oversight</b>
+                  <small>Approve or cancel equipment reservation requests.</small>
+                </span>
+                <span class="access-arrow">↗</span>
+              </a>
+            </div>
+          </section>
+
+          <p class="access-footnote">Security note: hiding admin controls in the interface is not access control. Every privileged API endpoint verifies the authenticated user's role on the server.</p>
+
+          <footer>
+            <span>© 2026 BorrowBox · Smart Campus Equipment Lending</span>
+            <span>Administrator Console</span>
+          </footer>
+        </div>
+      </main>
+    </div>
+
+    <div id="toast-region" aria-live="polite"></div>
+    <script src="config.js"></script>
+    <script src="app.js?v=dark-2026"></script>
+  </body>
 </html>

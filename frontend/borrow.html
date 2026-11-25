@@ -5,51 +5,100 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Borrow Equipment · BorrowBox</title>
     <link rel="icon" type="image/png" href="favicon.png?v=2">
-    <link rel="stylesheet" href="style.css?v=bbfix-20261027">
+    <link rel="stylesheet" href="style.css?v=dark-2026">
   </head>
   <body>
     <div class="shell">
-      <aside class="sidebar" id="sidebar">
-        <a class="brand" href="index.html">
-          <b class="logo">⬡</b>
-          <span>
-            <strong>Borrow<span>Box</span></strong>
-            <small>Smart equipment lending</small>
-          </span>
-        </a>
-
-        <p class="nav-label">WORKSPACE</p>
-        <nav>
-          <a href="index.html">⌂ <span>Dashboard</span></a>
-          <a href="equipment.html">⌕ <span>Available equipment</span></a>
-          <a class="active" href="borrow.html">▦ <span>Borrow equipment</span></a>
-          <a href="history.html">◷ <span> Borrowings</span></a>
-          <a href="reservations.html">▤ <span>Reservations</span></a>
-          <a href="maintenance.html">⚒ <span>Care & maintenance</span></a>
-
-          <p class="nav-label manage-label admin-only">MANAGE</p>
-          <a class="admin-only" href="users.html">♙ <span>People & roles</span></a>
-          <a class="admin-only" href="admin-access.html">♜ <span>Admin access</span></a>
-        </nav>
-
-        <div class="side-promo">
-          <b>✳ Good gear. Clear plans.</b>
-          <p>Make a clear request and keep your project on track.</p>
-          <a href="equipment.html">Back to catalogue ↗</a>
+      <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <div class="sidebar-header">
+          <a class="brand" href="index.html">
+            <b class="logo" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </b>
+            <span class="brand-text">
+              <strong>Borrow<span>Box</span></strong>
+              <small>Smart equipment lending</small>
+            </span>
+          </a>
+          <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Collapse sidebar" title="Toggle sidebar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+          </button>
         </div>
 
-        <small class="connection"><i></i> Connected workspace · v1.0</small>
+        <p class="nav-label">Workspace</p>
+        <nav>
+          <a href="index.html" title="Dashboard">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="equipment.html" title="Available equipment">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            <span>Equipment</span>
+          </a>
+          <a class="active" href="borrow.html" title="Borrow equipment">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            <span>Borrow</span>
+          </a>
+          <a href="history.html" title="Borrowings">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Borrowings</span>
+          </a>
+          <a href="reservations.html" title="Reservations">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            <span>Reservations</span>
+          </a>
+          <a href="maintenance.html" title="Care &amp; maintenance">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            <span>Care &amp; maintenance</span>
+          </a>
+
+          <p class="nav-label manage-label admin-only">Administration</p>
+          <a class="admin-only" href="users.html" title="People &amp; roles">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>People &amp; roles</span>
+          </a>
+          <a class="admin-only" href="admin-access.html" title="Admin access">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Admin access</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="side-promo">
+            <b>Check stock first</b>
+            <p>Browse available units before submitting a borrow request.</p>
+            <a href="equipment.html">Back to catalogue →</a>
+          </div>
+          <div class="sidebar-user" id="sidebar-user">
+            <span class="avatar" id="sidebar-avatar">U</span>
+            <div class="sidebar-user-meta">
+              <span class="sidebar-user-name" id="sidebar-user-name">Campus Member</span>
+              <span class="sidebar-user-role" id="sidebar-user-role">Student</span>
+            </div>
+          </div>
+          <small class="connection"><i></i> <span>Connected workspace</span></small>
+        </div>
       </aside>
 
       <main>
         <header class="topbar">
-          <button class="menu" id="menu">☰</button>
-          <div class="crumb">Workspace <b>/</b> <strong>Borrow equipment</strong></div>
+          <div class="topbar-left">
+            <button class="menu" id="menu" type="button" aria-label="Open navigation menu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+            <div class="crumb">Workspace <b>/</b> <strong>Borrow</strong></div>
+          </div>
           <div class="top-right">
-            <label class="role">
+            <label class="search">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input id="global-search" placeholder="Search equipment…">
+              <kbd>/</kbd>
+            </label>
+            <label class="role" title="Signed-in role">
               <span class="avatar">S</span>
-              <select id="role-switcher">
+              <select id="role-switcher" aria-label="User role">
                 <option>Student</option>
+                <option>Staff</option>
                 <option>Admin</option>
               </select>
             </label>
@@ -59,11 +108,11 @@
         <div class="content">
           <section class="page-title">
             <div>
-              <small>MAKE IT YOURS (FOR A LITTLE WHILE)</small>
-              <h1>Plan your <em>checkout.</em></h1>
-              <p>Tell us what you need and when. We'll check the details before sending your request.</p>
+              <small>EQUIPMENT CHECKOUT</small>
+              <h1>Borrow <em>equipment.</em></h1>
+              <p>Select an available item and set your expected return date. Stock availability is verified in real time.</p>
             </div>
-            <a class="link" href="equipment.html">← Browse equipment</a>
+            <a class="btn secondary" href="equipment.html">← Browse catalogue</a>
           </section>
 
           <section class="form-layout">
@@ -73,11 +122,11 @@
                   <small>REQUEST DETAILS</small>
                   <h2>Borrowing request<span>.</span></h2>
                 </div>
-                <small>STEP 01 / 01</small>
+                <span class="badge borrowed">Live stock check</span>
               </div>
 
               <form id="borrow-form">
-                <div class="form-row">
+                <div class="form-row single">
                   <label>
                     Equipment *
                     <select id="equipment-id" required>
@@ -100,11 +149,11 @@
                 </div>
 
                 <div class="notice">
-                  <b>✳ Before you send it off</b>
-                  <p>Choose a return date after the borrow date. The backend must enforce booking conflicts and stock rules.</p>
+                  <strong>Before you submit</strong>
+                  <p>Choose a return date after today. The server validates stock availability and records your checkout atomically.</p>
                 </div>
 
-                <p id="borrow-message" role="status"></p>
+                <p id="borrow-message" role="status" aria-live="polite"></p>
 
                 <div class="form-actions">
                   <button class="btn primary" id="submit-borrow" type="submit">Send borrowing request →</button>
@@ -114,38 +163,41 @@
             </article>
 
             <aside class="panel side-info">
-              <div class="big-icon">◷</div>
-              <small>THE BORROWBOX PROMISE</small>
-              <h2>Good gear.<br><em>Clear plans.</em></h2>
+              <div class="big-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <small>CHECKOUT WORKFLOW</small>
+              <h2>Clear plans.<br><em>Fast pickup.</em></h2>
 
               <div class="step">
                 <b>01</b>
                 <div>
-                  <strong>Choose your equipment</strong>
-                  <p>Check stock and pick what fits your project.</p>
+                  <strong>Choose equipment</strong>
+                  <p>Pick an available item from live campus inventory.</p>
                 </div>
               </div>
 
               <div class="step">
                 <b>02</b>
                 <div>
-                  <strong>Set your dates</strong>
-                  <p>Give yourself enough time to create and return it.</p>
+                  <strong>Set your return date</strong>
+                  <p>Select a realistic return date for your project timeline.</p>
                 </div>
               </div>
 
               <div class="step">
                 <b>03</b>
                 <div>
-                  <strong>Track your status</strong>
-                  <p>Follow your request in Borrowings.</p>
+                  <strong>Track in Borrowings</strong>
+                  <p>Monitor due dates and return status anytime.</p>
                 </div>
               </div>
             </aside>
           </section>
 
           <footer>
-            © 2026 BorrowBox <span>Borrow responsibly. Make something brilliant.</span>
+            <span>© 2026 BorrowBox · Smart Campus Equipment Lending</span>
+            <span>Borrow responsibly and return items on time.</span>
           </footer>
         </div>
       </main>
@@ -153,6 +205,6 @@
 
     <div id="toast-region" aria-live="polite"></div>
     <script src="config.js"></script>
-    <script src="app.js?v=borrowfix-20261028-v3"></script>
+    <script src="app.js?v=dark-2026"></script>
   </body>
 </html>
